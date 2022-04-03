@@ -9,7 +9,7 @@
 
 require 'table'
 
-require "signal"
+require "signals"
 
 IrisEnt = { ENT_COUNTER=0 }
 IrisEnt.__index = IrisEnt
@@ -18,6 +18,7 @@ function IrisEnt:new(parameters, flags)
 	local this = {
 		ID = self.ENT_COUNTER , -- give unique id, counter increased at end of function
 		x = 0 , y = 0 ,
+		name = "IrisEnt" ,
 
 		ENTFLAGS = flags ,
 		SIGNALS_PENDING = {}
@@ -51,7 +52,7 @@ end
 function IrisEnt:Delete()
 	self:SetFlag("ENT_DELETE", true)
 	if self:GetFlag("ENT_SIGDELETION") then
-		self:SendSignal("SIG_DELETED", self.ID, -1, {})
+		self:SendSignal(SIG_DELETED:new(self))
 	end
 end
 
@@ -62,12 +63,20 @@ end
 -- adds a signal to entities table of signals to be sent next tick
 -- an entity can send multiple signals in a tick
 -- same arguments as Signal:new
-function IrisEnt:SendSignal(sig, sender, dest, data)
-	table.insert(SIGNALS_PENDING, Signal:new(sig,sender,dest,data))
+function IrisEnt:SendNewSignal(sig, sender, dest, data, flags)
+	table.insert(SIGNALS_PENDING, Signal:new(sig,sender,dest,data,flags))
+end
+-- sends signal passed as argument, sending pre-existing signals in src/sig is preferable
+function IrisEnt:SendSignal(sig)
+	table.insert(SIGNALS_PENDING, sig)
 end
 
 function IrisEnt:ClearSignals()
 	self.SIGNALS_PENDING = {}
+end
+
+function IrisEnt:DebugName()
+	return self.name + "{" + tostring(self.ID) + "}"
 end
 
 test_ent = IrisEnt:new({x=100,y=100,name="hi",ENTFLAGS={"zomg"}}, {big=true})

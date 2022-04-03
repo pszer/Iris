@@ -20,7 +20,7 @@ Signal = {}
 Signal.__index = Signal
 
 -- STRING, INT, INT, TABLE, FLAGS
-function Signal.new(signaltype, senderid, destinationid, payload, signalflags)
+function Signal:new(signaltype, senderid, destinationid, payload, signalflags)
 	local this = {
 		signal = signaltype,
 		sender = senderid,

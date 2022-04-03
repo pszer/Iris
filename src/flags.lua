@@ -19,8 +19,13 @@ FLAGS_D = {
 	ENT_DELETE      = false , -- if true the entity will be deleted at the end
 	                          -- of current game tick
 							  --
-	ENT_SIGDELETION = true    -- if true an entity will send a signal that its
-	                          -- been deleted when deleted
+	ENT_SIGDELETION = true  , -- if true an entity will send a signal that its
+	                          -- been deleted when deleted, keep true to make
+							  -- life easier
+							  --
+
+	-- flags for how a signal should be handled
+	SIG_DEBUG       = false   -- if true a signal will be printed to debug console_
 }
 
 Flags = {}
