@@ -7,6 +7,8 @@
 --
 --]]
 
+require 'table'
+
 require "signal"
 
 IrisEnt = { ENT_COUNTER=0 }
@@ -14,19 +16,20 @@ IrisEnt.__index = IrisEnt
 
 function IrisEnt:new(parameters, flags)
 	local this = {
-		ID = ENT_COUNTER , -- give unique id, counter increased at end of function
+		ID = self.ENT_COUNTER , -- give unique id, counter increased at end of function
 		x = 0 , y = 0 ,
 
-		entflags = flags
+		ENTFLAGS = flags ,
+		SIGNALS_PENDING = {}
 	}
 
 	for k,v in pairs(parameters) do
-		if k ~= "entflags" then
+		if k ~= "ENTFLAGS" then
 			this[k] = v
 		end
 	end
 
-	ENT_COUNTER = ENT_COUNTER + 1
+	self.ENT_COUNTER = self.ENT_COUNTER + 1
 	setmetatable(this,IrisEnt)
 
 	return this
@@ -37,20 +40,34 @@ function IrisEnt:Update()
 end
 
 function IrisEnt:GetFlag(k)
-	return self.entflags[k]
+	return self.ENTFLAGS[k]
 end
 
 function IrisEnt:SetFlag(k, v)
-	self.entflags[k] = v
+	self.ENTFLAGS[k] = v
 end
 
 -- marks entity for deletion
 function IrisEnt:Delete()
 	self:SetFlag("ENT_DELETE", true)
+	if self:GetFlag("ENT_SIGDELETION") then
+		self:SendSignal("SIG_DELETED", self.ID, -1, {})
+	end
 end
 
 function IrisEnt:HandleSignal(sig)
 	-- do nothing
 end
 
-test_ent = IrisEnt:new({x=100,y=100,name="hi",entflags={"zomg"}}, {big=true})
+-- adds a signal to entities table of signals to be sent next tick
+-- an entity can send multiple signals in a tick
+-- same arguments as Signal:new
+function IrisEnt:SendSignal(sig, sender, dest, data)
+	table.insert(SIGNALS_PENDING, Signal:new(sig,sender,dest,data))
+end
+
+function IrisEnt:ClearSignals()
+	self.SIGNALS_PENDING = {}
+end
+
+test_ent = IrisEnt:new({x=100,y=100,name="hi",ENTFLAGS={"zomg"}}, {big=true})

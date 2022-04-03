@@ -1,15 +1,26 @@
 --[[
-utility class, table of flags
-allows for global default values of flags if not set
+-- utility class, table of flags
+-- allows for global default values of flags if not set
+-- only true/false values should be used as flags,, because they're FLAGS
 --]]
 
 FLAGS_D = {
 
 	-- flags for how an entity should be handled
-	ENT_UPDATE      = true  ,
-	ENT_DRAW        = false ,
-	ENT_CATCHSIGNAL = true  ,
-	ENT_DELETE      = false
+	ENT_UPDATE      = true  , -- static entities should have update disabled
+                              --
+	ENT_DRAW        = false , -- if false an entity will be ignored during
+	                          -- rendering, should be disabled for invisible
+							  -- entities or if off-screen
+							  --
+	ENT_CATCHSIGNAL = false , -- entities that dont need signals should have this
+	                          -- disabled
+							  --
+	ENT_DELETE      = false , -- if true the entity will be deleted at the end
+	                          -- of current game tick
+							  --
+	ENT_SIGDELETION = true    -- if true an entity will send a signal that its
+	                          -- been deleted when deleted
 }
 
 Flags = {}
@@ -23,4 +34,4 @@ end
 
 -- empty table of flags to be used when passing no flags
 -- to functions that expect them
-NILFLAGS = Flags:new()
+NILFLAGS = Flags:new({})
