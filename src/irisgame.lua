@@ -17,32 +17,38 @@ IRISGAME = {
 --]]
 function IRISGAME:update_ents()
 	-- collect all signals from entities
-	for _,v in pairs(self.ENT_TABLE) do
-		for _,sig in pairs(v.SIGNALS_PENDING) do
+	local collect_signals = function (e)
+		for _,sig in pairs(e.SIGNALS_PENDING) do
 			table.insert(self.SIGNAL_TABLE, sig)
 		end
 	end
 
+	for _,etable in pairs(self.ENT_TABLES) do
+		etable:Apply(collect_signals)
+	end
+
 	-- delete any entities marked for deletion (ENT_DELETE)
-	for k,v in pairs(self.ENT_TABLE) do
-		if v:GetFlag("ENT_DELETE") then
-			self.ENT_TABLE[k] = nil
-		end
+	for _,etable in pairs(self.ENT_TABLES) do
+		etable:DeleteMarked()
 	end
 
 	-- each entity will handle current signals
 	-- then call their update functions (if flags for these are enabled)
-	for _,v in pairs(self.ENT_TABLE) do
-
-		if v:GetFlag("ENT_CATCHSIGNAL") then
-			for _,sig in pairs(SIGNAL_TABLE) do
-				v:HandleSignal(sig)
+	--
+	local update = function (e)
+		if e:GetFlag("ENT_CATCHSIGNAL") then
+			for _,sig in pairs(self.SIGNAL_TABLE) do
+				e:HandleSignal(sig)
 			end
 		end
 
-		if v:GetFlag("ENT_UPDATE") then
-			v:Update()
+		if e:GetFlag("ENT_UPDATE") then
+			e:Update()
 		end
+	end
+
+	for _,etable in pairs(self.ENT_TABLES) do
+		etable:Apply()
 	end
 
 	-- delete old signals
