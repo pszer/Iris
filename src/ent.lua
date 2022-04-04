@@ -62,13 +62,13 @@ end
 
 -- adds a signal to entities table of signals to be sent next tick
 -- an entity can send multiple signals in a tick
--- same arguments as Signal:new
+-- same arguments as Signal:new, if sender is nil it uses this entities ID
 function IrisEnt:SendNewSignal(sig, sender, dest, data, flags)
-	table.insert(SIGNALS_PENDING, Signal:new(sig,sender,dest,data,flags))
+	table.insert(self.SIGNALS_PENDING, Signal:new(sig,sender or self.ID,dest,data,flags))
 end
 -- sends signal passed as argument, sending pre-existing signals in src/sig is preferable
 function IrisEnt:SendSignal(sig)
-	table.insert(SIGNALS_PENDING, sig)
+	table.insert(self.SIGNALS_PENDING, sig)
 end
 
 function IrisEnt:ClearSignals()
@@ -80,3 +80,4 @@ function IrisEnt:DebugName()
 end
 
 test_ent = IrisEnt:new({x=100,y=100,name="hi",ENTFLAGS={"zomg"}}, {big=true})
+test_ent:SendNewSignal("TEST_SIGNAL", nil, nil, nil, nil)

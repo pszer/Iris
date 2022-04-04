@@ -9,7 +9,7 @@
 -- entities handle signals before their update functions are called
 --
 -- if the SIGNAL_DEBUG flag is set it will be printed for debugging
--- [DEBUG_TEXT] should be used in payload for outputting debug text
+-- ["DEBUG_TEXT"] should be used in payload for outputting debug text
 --
 -- common signals are in src/sig
 --]]
@@ -23,11 +23,20 @@ Signal.__index = Signal
 function Signal:new(signaltype, senderid, destinationid, payload, signalflags)
 	local this = {
 		signal = signaltype,
-		sender = senderid,
-		destination = destionationid,
-		data = payload,
-		flags = signalflags
+		sender = senderid or -1,
+		destination = destionationid or -1,
+		data = payload or {},
+		flags = signalflags or NILFLAGS
 	}
 	setmetatable(this, Signal)
 	return this
+end
+
+function Signal:GetKey(k)
+	return self.flags[k]
+end
+
+function Signal:DebugText()
+	return (self.data.DEBUG_TEXT or "") ..
+	       "(" .. self.signal .. "," .. self.sender .. "," .. self.destination .. ")"
 end

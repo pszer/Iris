@@ -17,7 +17,7 @@ EntTable.__index = EntTable
 
 function EntTable:new(entities)
 	local this = {
-		ents = entities or {}
+		ents = entities or {},
 		ID = self.ENT_TABLE_COUNTER
 	}
 	self.ENT_TABLE_COUNTER = self.ENT_TABLE_COUNTER + 1
@@ -60,8 +60,8 @@ end
 
 -- deleted entities marked for deletion
 function EntTable:DeleteMarked()
-	for k,v in self.ents do
-		if v:GetKey("ENT_DELETE") then
+	for k,v in pairs(self.ents) do
+		if v:GetFlag("ENT_DELETE") then
 			self.ents[k] = nil
 		end
 	end
@@ -71,9 +71,10 @@ end
 -- entity table, function takes 1 argument
 -- for the entity
 function EntTable:Apply(lambda)
-	for _,v in self.ents do
+	for _,v in pairs(self.ents) do
 		lambda(v)
 	end
 end
 
 PlayerEntTable = EntTable:new()
+PlayerEntTable:AddEntity(test_ent)

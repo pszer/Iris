@@ -1,4 +1,4 @@
-require "ent"
+require "ent_table"
 
 IRISGAME = {
 	TICKTIME = 1/64.0,
@@ -6,7 +6,7 @@ IRISGAME = {
 
 	SIGNAL_TABLE = {},
 
-	ENT_TABLES = {}
+	ENT_TABLES = {PlayerEntTable}
 }
 
 --[[ order for entity updates
@@ -21,10 +21,19 @@ function IRISGAME:update_ents()
 		for _,sig in pairs(e.SIGNALS_PENDING) do
 			table.insert(self.SIGNAL_TABLE, sig)
 		end
+		e:ClearSignals()
 	end
+
 
 	for _,etable in pairs(self.ENT_TABLES) do
 		etable:Apply(collect_signals)
+	end
+
+	-- print signals for debugging
+	for _,v in pairs(self.SIGNAL_TABLE) do
+		if v:GetKey("SIG_DEBUG") then
+			print(v:DebugText())
+		end
 	end
 
 	-- delete any entities marked for deletion (ENT_DELETE)
@@ -48,11 +57,11 @@ function IRISGAME:update_ents()
 	end
 
 	for _,etable in pairs(self.ENT_TABLES) do
-		etable:Apply()
+		etable:Apply(update)
 	end
 
 	-- delete old signals
-	SIGNAL_TABLE = { }
+	self.SIGNAL_TABLE = { }
 end
 
 function IRISGAME:update(dt)

@@ -25,7 +25,7 @@ FLAGS_D = {
 							  --
 
 	-- flags for how a signal should be handled
-	SIG_DEBUG       = false   -- if true a signal will be printed to debug console_
+	SIG_DEBUG       = true    -- if true a signal will be printed to debug console_
 }
 
 Flags = {}
