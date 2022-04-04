@@ -86,9 +86,7 @@ function TimerReal:new() return Timer:new(GetSecond) end
 CountdownTimer = Timer:new()
 CountdownTimer.__index = CountdownTimer
 function CountdownTimer:new(ticks, TIMEFUNC)
-	print("yes")
 	local t = Timer:new(TIMEFUNC)
-	print("yes")
 	setmetatable(t, CountdownTimer)
 	t.__ticks__ = ticks
 	return t

@@ -1,4 +1,5 @@
 require "ent_table"
+require "input"
 
 IRISGAME = {
 	SIGNAL_TABLE = {},
@@ -29,7 +30,7 @@ function IRISGAME:update_ents()
 	-- print signals for debugging
 	for _,v in pairs(self.SIGNAL_TABLE) do
 		if v:GetKey("SIG_DEBUG") then
-			print(v:DebugText())
+			print(GetTick() .. " SIGNAL " .. v:DebugText())
 		end
 	end
 
@@ -84,8 +85,6 @@ function IRISGAME:DisableEntTable(ID)
 	end
 end
 
-testtimer = PulseClock:new(2, 8, GetTick)
-
 function IRISGAME:update(dt)
 	TICKACC = TICKACC + dt
 	if TICKACC >= TICKTIME then
@@ -95,7 +94,6 @@ function IRISGAME:update(dt)
 		--
 
 		IncrementTick()
-		print(testtimer:Get())
 
 		self:update_ents()
 	end
