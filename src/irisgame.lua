@@ -1,9 +1,6 @@
 require "ent_table"
 
 IRISGAME = {
-	TICKTIME = 1/64.0,
-	TICKACC = 0.0,
-
 	SIGNAL_TABLE = {},
 
 	ENT_TABLES = {PlayerEntTable}
@@ -64,13 +61,38 @@ function IRISGAME:update_ents()
 	self.SIGNAL_TABLE = { }
 end
 
+-- adds an entity table to the active entity table list
+-- the reference for an entity table in the active table list
+-- should not be the only one but stored elsewhere
+function IRISGAME:ActivateEntTable(enttable)
+	-- check if entity table is already active
+	for _,e in pairs(self.ENT_TABLES) do
+		if enttable.ID == e.ID then
+			return
+		end
+	end
+
+	table.insert(self.ENT_TABLES, enttable) 
+end
+
+-- disables and entity table by it's unique ID
+function IRISGAME:DisableEntTable(ID)
+	for k,e in pairs(self.ENT_TABLES) do
+		if e.ID == ID then
+			table.remove(self.ENT_TABLES, k)
+		end
+	end
+end
+
 function IRISGAME:update(dt)
-	self.TICKACC = self.TICKACC + dt
-	if self.TICKACC >= self.TICKTIME then
-		self.TICKACC = self.TICKACC - self.TICKTIME
+	TICKACC = TICKACC + dt
+	if TICKACC >= TICKTIME then
+		TICKACC = TICKACC - TICKTIME
 
 		-- game logic tied to 64 HZ
 		--
+
+		IncrementTick()
 
 		self:update_ents()
 	end
