@@ -1,3 +1,4 @@
+-- TODO: console, but nothing else. keep this file small
 require "irisgame"
 
 function love.load()

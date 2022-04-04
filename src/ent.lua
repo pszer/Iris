@@ -10,6 +10,7 @@
 require 'table'
 
 require "signals"
+require "timer"
 
 IrisEnt = { ENT_COUNTER=0 }
 IrisEnt.__index = IrisEnt
