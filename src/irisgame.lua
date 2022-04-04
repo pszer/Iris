@@ -84,6 +84,8 @@ function IRISGAME:DisableEntTable(ID)
 	end
 end
 
+testtimer = PulseClock:new(2, 8, GetTick)
+
 function IRISGAME:update(dt)
 	TICKACC = TICKACC + dt
 	if TICKACC >= TICKTIME then
@@ -93,6 +95,7 @@ function IRISGAME:update(dt)
 		--
 
 		IncrementTick()
+		print(testtimer:Get())
 
 		self:update_ents()
 	end
