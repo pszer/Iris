@@ -1,0 +1,9 @@
+logic
+replace flag system with more robust type checked properties system
+rooms, way of storing rooms
+hitboxes, hitbox collision, hitbox collection
+finish input system with input queueries and key bindings
+saving and loading
+
+graphics
+

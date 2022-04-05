@@ -1,9 +1,19 @@
 --[[
 --
 -- base class for entities
--- each entity is guaranteed to have a unique numeric ID, an
--- x and y position and an update function, get/set flag function
--- and handle signal function
+--
+-- all entities have the following
+-- ID                   - unique integer ID assigned at creation
+-- name                 - string name for entity, not guaranteed to be
+--                        unique but more convenient for identifying
+--                        entities
+-- x,y                  - position co-ordinates
+-- Update()             - update function
+-- Delete()             - marks entity for deletion
+-- GetFlag(flag)        - gets flag value
+-- SetFlag(flag, value) - sets flag value
+-- HandleSignal(sig)    - gets given current signals
+-- SendSignal(sig)      - queues a signal to send next tick
 --
 --]]
 

@@ -67,6 +67,8 @@ function EntTable:DeleteMarked()
 	end
 end
 
+
+
 -- applies a function to all entities in
 -- entity table, function takes 1 argument
 -- for the entity
