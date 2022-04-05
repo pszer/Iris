@@ -1,5 +1,6 @@
 require "ent_table"
 require "input"
+require "prop"
 
 IRISGAME = {
 	SIGNAL_TABLE = {},
