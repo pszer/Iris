@@ -50,16 +50,6 @@ PropsPrototypeRowMeta.__index = function (row, k)
 	return rawget(row, rawget(PropsPrototypeRowMeta, k))
 end
 
-proto = Props:prototype{ {"test" , "number", 100, function (a)
-                                                  if a >= 0 then
-												  	return true,a
-												  else
-												  	return true,0
-												  end
-												  end},
-                         {"test2", "string", "str", nil},
-						 {"test3", nil, true, nil}}
-
 -- once a prototype is created, it can be called like a function
 -- to give an instance of a prototype table
 -- initial values of properties can be given through the optional init argument
