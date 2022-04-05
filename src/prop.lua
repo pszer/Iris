@@ -8,7 +8,7 @@ Props.__index = Prop
 
 -- creates a prototype property table that can
 -- be reused several times
--- takes in a variable number of arguments, with each
+-- takes in a table of arguments, with each
 -- argument being a table for a row in the property table
 -- {key, type, default, valid}
 -- key       - key for the property
@@ -16,6 +16,7 @@ Props.__index = Prop
 -- default   - default value for the property
 -- valid     - function called when setting the value of a property to check validity
 --             if nil then there is no input validity checking
+-- info      - a string of information of what the property is for (optional)
 --
 -- validity checking functions work as follows
 -- they take 1 argument, which is what the property is being asked to be set to
@@ -28,7 +29,7 @@ function Props:prototype(arg)
 	for _,row in pairs(arg) do
 		-- the property will be stored in p as
 		-- p[key] = {type, default, valid}
-		local property = {row[2], row[3], row[4]}
+		local property = {row[2], row[3], row[4], row[5] or row[2]}
 		setmetatable(property, PropsPrototypeRowMeta)
 		p[row[1]] = property
 	end
@@ -44,7 +45,7 @@ end
 -- prototype.key.default
 -- prototype.key.valid
 PropsPrototypeRowMeta = {
-	type = 1, default = 2, valid = 3}
+	type = 1, default = 2, valid = 3, info = 4}
 PropsPrototypeRowMeta.__index = function (row, k)
 	return rawget(row, rawget(PropsPrototypeRowMeta, k))
 end
@@ -108,7 +109,6 @@ Props.__call = function (proto, init)
 
 	for key,row in pairs(proto) do
 		props[key] = (init and init[key]) or proto[key].default
-		print("key",tostring(key)," val",tostring(props[key]))
 	end
 
 	return props

@@ -2,7 +2,7 @@
 -- utility object for communication between entities
 -- entities can send signals to all other entities, each signal
 -- has a sender id and destination id but all entities can recieve the
--- signal and respond to it. each signal has a payload and flags
+-- signal and respond to it. each signal has a payload and properties
 --
 -- if sender/destination id is not required/unspecified use -1
 --
@@ -14,29 +14,32 @@
 -- common signals are in src/sig
 --]]
 
-require "flags"
+require "props/sigprops"
 
 Signal = {}
 Signal.__index = Signal
 
 -- STRING, INT, INT, TABLE, FLAGS
-function Signal:new(signaltype, senderid, destinationid, payload, signalflags)
+function Signal:new(signaltype, senderid, destinationid, payload, signalprops)
 	local this = {
 		signal = signaltype,
 		sender = senderid or -1,
 		destination = destionationid or -1,
 		data = payload or {},
-		flags = signalflags or NILFLAGS
+		props = SigPropPrototype(signalprops) 
 	}
 	setmetatable(this, Signal)
 	return this
 end
 
-function Signal:GetKey(k)
-	return self.flags[k]
+function Signal:GetProp(k)
+	return self.props[k]
 end
 
 function Signal:DebugText()
 	return (self.data.DEBUG_TEXT or "") ..
 	       "(" .. self.signal .. "," .. self.sender .. "," .. self.destination .. ")"
+end
+Signal.__tostring = function (sig)
+	return sig:DebugText()
 end

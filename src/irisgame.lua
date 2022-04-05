@@ -30,7 +30,7 @@ function IRISGAME:update_ents()
 
 	-- print signals for debugging
 	for _,v in pairs(self.SIGNAL_TABLE) do
-		if v:GetKey("SIG_DEBUG") then
+		if v:GetProp("sig_debug") then
 			print(GetTick() .. " SIGNAL " .. v:DebugText())
 		end
 	end
@@ -44,13 +44,13 @@ function IRISGAME:update_ents()
 	-- then call their update functions (if flags for these are enabled)
 	--
 	local update = function (e)
-		if e:GetFlag("ENT_CATCHSIGNAL") then
+		if e:GetFlag("ent_catchsignal") then
 			for _,sig in pairs(self.SIGNAL_TABLE) do
 				e:HandleSignal(sig)
 			end
 		end
 
-		if e:GetFlag("ENT_UPDATE") then
+		if e:GetFlag("ent_update") then
 			e:Update()
 		end
 	end

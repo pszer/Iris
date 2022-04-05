@@ -14,6 +14,7 @@
 -- SetFlag(flag, value) - sets flag value
 -- HandleSignal(sig)    - gets given current signals
 -- SendSignal(sig)      - queues a signal to send next tick
+-- Props                - 
 --
 --]]
 
