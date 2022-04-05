@@ -56,6 +56,8 @@ CONTROL_LOCK = {
 	INGAME      = {101,      0}
 }
 
+-- if additional control locks are needed only add them through this
+-- ensures priorities dont clash and correct metatables are set
 function ADD_CONTROL_LOCK(name, priority)
 	for _,lock in pairs(CONTROL_LOCK) do
 		if priority == lock[1] then
