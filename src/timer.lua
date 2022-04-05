@@ -1,4 +1,5 @@
 require 'math'
+require 'iristype'
 
 -- tick globals
 TICKTIME = 1/64.0
@@ -24,6 +25,7 @@ end
 
 Timer = {}
 Timer.__index = Timer
+Timer.__type  = "timer"
 
 function Timer:new(TIMEFUNC)
 	local t = {
@@ -126,3 +128,6 @@ function PulseClock:new(pulsetime, pulsedelay, TIMEFUNC)
 	setmetatable(t, PulseClock)
 	return t
 end
+
+testpulse = PulseClock:new(1, 8, GetTick)
+print(iristype(testpulse))

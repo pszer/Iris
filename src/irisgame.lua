@@ -1,11 +1,13 @@
 require "ent_table"
 require "input"
 require "prop"
+require "iristype"
 
 IRISGAME = {
 	SIGNAL_TABLE = {},
 
-	ENT_TABLES = {PlayerEntTable}
+	ENT_TABLES = {PlayerEntTable},
+	ENTS = {}
 }
 
 --[[ order for entity updates

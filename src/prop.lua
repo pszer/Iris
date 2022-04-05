@@ -3,6 +3,8 @@
 -- ]]
 --
 
+require "iristype"
+
 Props = {}
 Props.__index = Prop
 
@@ -71,7 +73,7 @@ Props.__call = function (proto, init)
 			return
 		end
 
-		if row.type ~= nil and row.type ~= type(val) then
+		if row.type ~= nil and row.type ~= iristype(val) then
 			print("property [" .. tostring(key) .. "] is a " .. row.type .. ", tried to assign a " .. type(val)
 			       .. " (" .. tostring(val) .. ")")
 			return

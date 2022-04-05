@@ -6,10 +6,15 @@ require "prop"
 
 EntPropPrototype = Props:prototype{
 
-	{"ent_draw", "boolean", true , nil,        "if false entity is not drawn"}
-	{"ent_update", "boolean", true , nil,      "if false entity is not updated by its update function"}
-	{"ent_catchsignal", "boolean", true , nil, "if false entity will be skipped in signal handling"}
-	{"ent_delete", "boolean", false, nil,      "if true the entity is marked for deletion"}
-	{"ent_sigdeletion", "boolean", true , nil, "if true the entity will send out SIG_DELETED upon deletion"}
+	{"ent_draw", "boolean", true , nil,        "if false entity is not drawn"}, -- done
+	{"ent_update", "boolean", true , nil,      "if false entity is not updated by its update function"}, -- done
+	{"ent_catchsignal", "boolean", true , nil, "if false entity will be skipped in signal handling"}, -- done
+
+	{"ent_delete", "boolean", false, nil,      "if true the entity is marked for deletion"}, -- done
+	{"ent_deletewhendisabled", "boolean", false, nil, "if true the entity is deleted if in a disabled entity table"}, -- needs to be implemented 
+	{"ent_sigdeletion", "boolean", true , nil, "if true the entity will send out SIG_DELETED upon deletion"}, -- done
+
+	{"ent_hp", "number", 1, nil,               "entities health points"},
+	{"ent_dieonnohp", "boolean", false, nil,   "if true an entity dies on 0 or less hp and activates death behaviour"} -- needs to be implemented
 
 }

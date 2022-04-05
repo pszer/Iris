@@ -1,0 +1,4 @@
+--[[
+-- basic hitboxes
+-- a hitbox has an area and a property table
+--]]

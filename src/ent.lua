@@ -23,7 +23,7 @@ require 'table'
 require "signals"
 require "timer"
 
-IrisEnt = { ENT_COUNTER=0 }
+IrisEnt = { ENT_COUNTER=0 , __type = "irisent"}
 IrisEnt.__index = IrisEnt
 
 function IrisEnt:new(parameters, flags)

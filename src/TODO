@@ -1,9 +1,12 @@
+complete engine by the 20th or else u sux
+
 logic
-replace flag system with more robust type checked properties system
+DONE replace flag system with more robust type checked properties system
 rooms, way of storing rooms
 hitboxes, hitbox collision, hitbox collection
 finish input system with input queueries and key bindings
 saving and loading
 
 graphics
-
+graphics loading
+create system for animation
