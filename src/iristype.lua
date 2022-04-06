@@ -15,7 +15,9 @@ function iristype(x)
 
 	if mt then
 		local typemt = mt.__type
-		if type(typemt) == "function" then
+		if typemt == nil then
+			return t
+		elseif type(typemt) == "function" then
 			return typemt(x)
 		elseif type(mt) == "table" then
 			if mt.__type then

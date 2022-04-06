@@ -15,7 +15,8 @@ IRISGAME = {
 	SIGNAL_TABLE = {},
 
 	-- List of enabled entity tables
-	ENT_TABLES = {PlayerEntTable},
+	--ENT_TABLES = {PlayerEntTable},
+	ENT_TABLES = EntTableCollection:new()
 
 	-- ENTS provides functionality for easily accessing all
 	-- active entities from the table of active entity tables
@@ -34,6 +35,12 @@ IRISGAME = {
 	--ENTS.__pairs = function ()--]]
 }
 
+IRISGAME.ENT_TABLES:AddTable(PlayerEntTable)
+
+for i,v in pairs(IRISGAME.ENT_TABLES.__active_tables) do
+	print("wwwwwwwwwwwwwwww",i,v)
+end
+
 --[[ order for entity updates
 -- 1. collect signals
 -- 2. delete entities marked for deletion
@@ -49,9 +56,9 @@ function IRISGAME:update_ents()
 		e:ClearSignals()
 	end
 
-
-	for _,etable in pairs(self.ENT_TABLES) do
-		etable:Apply(collect_signals)
+	for _,entity in self.ENT_TABLES:Pairs() do
+		collect_signals(entity)
+		--etable:Apply(collect_signals)
 	end
 
 	-- print signals for debugging
@@ -62,9 +69,7 @@ function IRISGAME:update_ents()
 	end
 
 	-- delete any entities marked for deletion (ENT_DELETE)
-	for _,etable in pairs(self.ENT_TABLES) do
-		etable:DeleteMarked()
-	end
+	self.ENT_TABLES:DeleteMarked()
 
 	-- each entity will handle current signals
 	-- then call their update functions (if flags for these are enabled)
@@ -81,8 +86,10 @@ function IRISGAME:update_ents()
 		end
 	end
 
-	for _,etable in pairs(self.ENT_TABLES) do
-		etable:Apply(update)
+	for _,ent in self.ENT_TABLES:Pairs() do
+		if ent.props.ent_update then
+			ent:Update()
+		end
 	end
 
 	-- delete old signals
