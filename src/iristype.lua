@@ -7,6 +7,10 @@
 --
 
 function iristype(x)
+	local t = type(x)
+	if t ~= "table" then
+		return t
+	end
 	local mt = getmetatable(x)
 
 	if mt then
@@ -22,6 +26,6 @@ function iristype(x)
 			return typemt
 		end
 	else
-		return type(x)
+		return t
 	end
 end

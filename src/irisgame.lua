@@ -33,7 +33,7 @@ function IRISGAME:update_ents()
 	-- print signals for debugging
 	for _,v in pairs(self.SIGNAL_TABLE) do
 		if v:GetProp("sig_debug") then
-			print(GetTick() .. " SIGNAL " .. v:DebugText())
+			print(GetTick() .. " SIGNAL " .. tostring(v))
 		end
 	end
 

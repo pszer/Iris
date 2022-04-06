@@ -14,7 +14,7 @@
 -- SetFlag(flag, value) - sets flag value
 -- HandleSignal(sig)    - gets given current signals
 -- SendSignal(sig)      - queues a signal to send next tick
--- Props                - 
+-- Props                - entity property table, properties are listed in props/entprops.lua 
 --
 --]]
 
@@ -26,13 +26,13 @@ require "timer"
 IrisEnt = { ENT_COUNTER=0 , __type = "irisent"}
 IrisEnt.__index = IrisEnt
 
-function IrisEnt:new(parameters, flags)
+function IrisEnt:new(parameters, props)
 	local this = {
 		ID = self.ENT_COUNTER , -- give unique id, counter increased at end of function
 		x = 0 , y = 0 ,
 		name = "IrisEnt" ,
 
-		ENTFLAGS = flags ,
+		props = props ,
 		SIGNALS_PENDING = {}
 	}
 
@@ -52,18 +52,18 @@ function IrisEnt:Update()
 	-- do nothing
 end
 
-function IrisEnt:GetFlag(k)
-	return self.ENTFLAGS[k]
+function IrisEnt:GetProp(k)
+	return self.props[k]
 end
 
-function IrisEnt:SetFlag(k, v)
-	self.ENTFLAGS[k] = v
+function IrisEnt:SetProp(k, v)
+	self.props[k] = v
 end
 
 -- marks entity for deletion
 function IrisEnt:Delete()
-	self:SetFlag("ENT_DELETE", true)
-	if self:GetFlag("ENT_SIGDELETION") then
+	self:SetProp("ent_delete", true)
+	if self:GetProp("ent_sigdeletion") then
 		self:SendSignal(SIG_DELETED:new(self))
 	end
 end
@@ -88,8 +88,13 @@ function IrisEnt:ClearSignals()
 end
 
 function IrisEnt:DebugName()
-	return self.name + "{" + tostring(self.ID) + "}"
+	return self.name .. "{" .. tostring(self.ID) .. "}"
 end
 
-test_ent = IrisEnt:new({x=100,y=100,name="hi",ENTFLAGS={"zomg"}}, {big=true})
+function IrisEnt.__tostring(ent)
+	return ent:DebugName()
+end
+
+test_ent = IrisEnt:new( {x=100,y=100,name="hi"}, {ent_sigdeletion=true})
 test_ent:SendNewSignal("TEST_SIGNAL", nil, nil, nil, nil)
+test_ent:Delete()

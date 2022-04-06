@@ -1,5 +1,6 @@
 --[[
--- utility object for communication between entities
+-- utility object for communication between entities and for communication
+-- between entities and the game state
 -- entities can send signals to all other entities, each signal
 -- has a sender id and destination id but all entities can recieve the
 -- signal and respond to it. each signal has a payload and properties
@@ -8,8 +9,8 @@
 --
 -- entities handle signals before their update functions are called
 --
--- if the SIGNAL_DEBUG flag is set it will be printed for debugging
--- ["DEBUG_TEXT"] should be used in payload for outputting debug text
+-- if the sig_debug prop is set it will be printed for debugging
+-- [sig_debug_text] should be used in property table for outputting debug text
 --
 -- common signals are in src/sig
 --]]
@@ -37,7 +38,7 @@ function Signal:GetProp(k)
 end
 
 function Signal:DebugText()
-	return (self.data.DEBUG_TEXT or "") ..
+	return (self.props.sig_debugtext or "") ..
 	       "(" .. self.signal .. "," .. self.sender .. "," .. self.destination .. ")"
 end
 Signal.__tostring = function (sig)

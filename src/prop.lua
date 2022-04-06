@@ -66,7 +66,8 @@ Props.__call = function (proto, init)
 	local props = { __proptabledata = {} }
 
 	props.__proto = proto
-	props.__newindex = function (p, key, val)
+	props.__newindex =
+	function (p, key, val)
 		local row = proto[key]
 		if row == nil then
 			print("property [" .. tostring(key) .. "] does not exist")
@@ -74,20 +75,18 @@ Props.__call = function (proto, init)
 		end
 
 		if row.type ~= nil and row.type ~= iristype(val) then
-			print("property [" .. tostring(key) .. "] is a " .. row.type .. ", tried to assign a " .. type(val)
+			print("property [" .. tostring(key) .. "] is a " .. row.type .. ", tried to assign a " .. iristype(val)
 			       .. " (" .. tostring(val) .. ")")
 			return
 		end
 
 		if row.valid then
-			print("checking validity")
-
 			local good, validvalue = row.valid(val)
 			if not good then
 				print("value " .. tostring(val) .. " is invalid for property [" .. tostring(key) .. "]")
+			else
+				rawset(p.__proptabledata, key, validvalue)
 			end
-
-			rawset(p.__proptabledata, key, validvalue)
 		else
 			rawset(p.__proptabledata, key, val)
 		end
