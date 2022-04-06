@@ -1,5 +1,4 @@
 require 'math'
-require 'iristype'
 
 -- tick globals
 TICKTIME = 1/64.0
@@ -128,6 +127,3 @@ function PulseClock:new(pulsetime, pulsedelay, TIMEFUNC)
 	setmetatable(t, PulseClock)
 	return t
 end
-
-testpulse = PulseClock:new(1, 8, GetTick)
-print(iristype(testpulse))

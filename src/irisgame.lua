@@ -96,9 +96,11 @@ function IRISGAME:update(dt)
 		-- game logic tied to 64 HZ
 		--
 
-		IncrementTick()
-
 		self:update_ents()
+
+		UpdateKeys()
+
+		IncrementTick()
 	end
 end
 
