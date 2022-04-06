@@ -20,27 +20,20 @@
 
 require 'table'
 
+require "props/entprops"
 require "signals"
 require "timer"
 
 IrisEnt = { ENT_COUNTER=0 , __type = "irisent"}
 IrisEnt.__index = IrisEnt
 
-function IrisEnt:new(parameters, props)
+function IrisEnt:new(props)
 	local this = {
-		ID = self.ENT_COUNTER , -- give unique id, counter increased at end of function
-		x = 0 , y = 0 ,
-		name = "IrisEnt" ,
-
-		props = props ,
-		SIGNALS_PENDING = {}
+		props = EntPropPrototype(props),
+		__signals_pending = {}
 	}
 
-	for k,v in pairs(parameters) do
-		if k ~= "ENTFLAGS" then
-			this[k] = v
-		end
-	end
+	this.props.ent_id = self.ENT_COUNTER
 
 	self.ENT_COUNTER = self.ENT_COUNTER + 1
 	setmetatable(this,IrisEnt)
@@ -64,7 +57,7 @@ end
 function IrisEnt:Delete()
 	self:SetProp("ent_delete", true)
 	if self:GetProp("ent_sigdeletion") then
-		self:SendSignal(SIG_DELETED:new(self))
+		self:SendSignal("signal_deleted")
 	end
 end
 
@@ -76,25 +69,32 @@ end
 -- an entity can send multiple signals in a tick
 -- same arguments as Signal:new, if sender is nil it uses this entities ID
 function IrisEnt:SendNewSignal(sig, sender, dest, data, flags)
-	table.insert(self.SIGNALS_PENDING, Signal:new(sig,sender or self.ID,dest,data,flags))
+	table.insert(self.__signals_pending, Signal:new(sig,sender or self.ID,dest,data,flags))
 end
--- sends signal passed as argument, sending pre-existing signals in src/sig is preferable
-function IrisEnt:SendSignal(sig)
-	table.insert(self.SIGNALS_PENDING, sig)
+-- sends signal passed as argument
+function IrisEnt:SendSignalInstance(sig)
+	table.insert(self.__signals_pending, sig)
+end
+-- sends premade signal
+function IrisEnt:SendSignal(sig_type)
+	local sig = IrisCreateSignal(sig_type, self)
+	if sig then
+		table.insert(self.__signals_pending, sig)
+	end
 end
 
 function IrisEnt:ClearSignals()
-	self.SIGNALS_PENDING = {}
+	self.__signals_pending = {}
 end
 
 function IrisEnt:DebugName()
-	return self.name .. "{" .. tostring(self.ID) .. "}"
+	return self.props.ent_name .. "{" .. tostring(self.props.ent_id) .. "}"
 end
 
 function IrisEnt.__tostring(ent)
 	return ent:DebugName()
 end
 
-test_ent = IrisEnt:new( {x=100,y=100,name="hi"}, {ent_sigdeletion=true})
+test_ent = IrisEnt:new( {x=100,y=100,name="hi",ent_sigdeletion=true})
 test_ent:SendNewSignal("TEST_SIGNAL", nil, nil, nil, nil)
 test_ent:Delete()

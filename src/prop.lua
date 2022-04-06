@@ -93,12 +93,24 @@ Props.__call = function (proto, init)
 	end
 
 	props.__index = function (p, key)
-		return rawget(p.__proptabledata, key)
+		local v = rawget(p.__proptabledata, key)
+		if v then
+			return v
+		else
+			if p.__proto[key] then
+				return p.__proto[key].default
+			else
+				return nil
+			end
+		end
 	end
 
 	setmetatable(props, props)
 
 	for key,row in pairs(proto) do
+		if init and init[key] then
+			props[key] = init[key]
+		end
 		props[key] = (init and init[key]) or proto[key].default
 	end
 

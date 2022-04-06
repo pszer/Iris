@@ -1,16 +1,20 @@
 -- signal called by entities marked for deletion
--- if ENT_SIGDELETION is true 
+-- if prop.ent_sigdeletion is true
 
 require "signal"
 
-SIG_DELETED = {}
+SIG_DELETED = { sig_type = "signal_deleted" }
 SIG_DELETED.__index = SIG_DELETED
 
-function SIG_DELETED:new(ent)
-	local this = Signal:new("SIG_DELETED", ent.ID, -1, nil,
-	                  {
-					   sig_debug      = true,
-					   sig_debug_text = tostring(ent) .. " deleted"}
-					  )
+function SIG_DELETED:__new(ent)
+	local this = {
+		sig_type = self.sig_type,
+		sig_debug = true,
+		sig_debug_text = tostring(ent) .. " deleted",
+
+		sig_sender = ent.props.ent_id
+	}
 	return this
 end
+
+IRIS_REGISTER_SIGNAL(SIG_DELETED)

@@ -6,6 +6,12 @@ require "prop"
 
 EntPropPrototype = Props:prototype{
 
+	{"ent_name", "string", "undefined", nil,   "entities name"}, -- done
+	{"ent_id",   "number", -1, nil,            "entities unique id"}, -- done
+
+	{"ent_x", "number", 0, nil,                "entities x position"}, -- done
+	{"ent_y", "number", 0, nil,                "entities x position"}, -- done
+
 	{"ent_draw", "boolean", true , nil,        "if false entity is not drawn"}, -- done
 	{"ent_update", "boolean", true , nil,      "if false entity is not updated by its update function"}, -- done
 	{"ent_catchsignal", "boolean", true , nil, "if false entity will be skipped in signal handling"}, -- done

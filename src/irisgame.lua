@@ -1,13 +1,37 @@
+--[[
+-- IRISGAME is responsible for storing all of the game state and has
+-- the games main update and draw function
+--]]
+
 require "ent_table"
 require "input"
 require "prop"
 require "iristype"
 
 IRISGAME = {
+
+	-- All signals in the current tick are collected here
+	-- then deleted
 	SIGNAL_TABLE = {},
 
+	-- List of enabled entity tables
 	ENT_TABLES = {PlayerEntTable},
-	ENTS = {}
+
+	-- ENTS provides functionality for easily accessing all
+	-- active entities from the table of active entity tables
+	--
+	-- ENTS is indexed with an entities ID, which returns the
+	-- active entity with that unique entity ID
+	-- the true functionality of ENTS is calling pairs(ENTS) which
+	-- allows for looping over all active entities
+	--[[ENTS = {}
+	ENTS.__index = function (id)
+		for _,enttable in pairs(ENT_TABLES) do
+			
+		end
+	end
+
+	--ENTS.__pairs = function ()--]]
 }
 
 --[[ order for entity updates
@@ -19,7 +43,7 @@ IRISGAME = {
 function IRISGAME:update_ents()
 	-- collect all signals from entities
 	local collect_signals = function (e)
-		for _,sig in pairs(e.SIGNALS_PENDING) do
+		for _,sig in pairs(e.__signals_pending) do
 			table.insert(self.SIGNAL_TABLE, sig)
 		end
 		e:ClearSignals()
@@ -46,13 +70,13 @@ function IRISGAME:update_ents()
 	-- then call their update functions (if flags for these are enabled)
 	--
 	local update = function (e)
-		if e:GetFlag("ent_catchsignal") then
+		if e:GetProp("ent_catchsignal") then
 			for _,sig in pairs(self.SIGNAL_TABLE) do
 				e:HandleSignal(sig)
 			end
 		end
 
-		if e:GetFlag("ent_update") then
+		if e:GetProp("ent_update") then
 			e:Update()
 		end
 	end

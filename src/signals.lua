@@ -1,3 +1,6 @@
--- all the signals innit
+--[[
+-- list of registered signals
+--]]
+--
 
 require "sig/DELETED"

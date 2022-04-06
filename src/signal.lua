@@ -21,12 +21,8 @@ Signal = {}
 Signal.__index = Signal
 
 -- STRING, INT, INT, TABLE, FLAGS
-function Signal:new(signaltype, senderid, destinationid, payload, signalprops)
+function Signal:new(signalprops)
 	local this = {
-		signal = signaltype,
-		sender = senderid or -1,
-		destination = destionationid or -1,
-		data = payload or {},
 		props = SigPropPrototype(signalprops) 
 	}
 	setmetatable(this, Signal)
@@ -39,8 +35,28 @@ end
 
 function Signal:DebugText()
 	return (self.props.sig_debugtext or "") ..
-	       "(" .. self.signal .. "," .. self.sender .. "," .. self.destination .. ")"
+	       "(" .. self.props.sig_type .. "," .. self.props.sig_sender .. "," .. self.props.sig_dest .. ")"
 end
 Signal.__tostring = function (sig)
 	return sig:DebugText()
+end
+
+IRIS_SIGNALS = {
+
+}
+
+function IRIS_SIGNAL_REGISTERED(name)
+	return IRIS_SIGNALS[name] ~= nil
+end
+
+function IRIS_REGISTER_SIGNAL(signal_prototype)
+	IRIS_SIGNALS[signal_prototype.sig_type] = signal_prototype
+end
+
+function IrisCreateSignal(name, ent)
+	if IRIS_SIGNALS[name] then
+		return Signal:new(IRIS_SIGNALS[name]:__new(ent))
+	end
+
+	print("IrisCreateSignal: " .. name .. " is not a registered signal")
 end

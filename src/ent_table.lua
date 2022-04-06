@@ -8,9 +8,12 @@
 -- makes managing entities easier
 --
 -- each ent table has a unique number id
+--
+-- entities in an entity table are stored sorted by their numeric id
 --]]
 
 require "ent"
+require "sortedtable"
 
 EntTable = { ENT_TABLE_COUNTER=0 }
 EntTable.__index = EntTable
@@ -87,6 +90,45 @@ function EntTable.__tostring(enttable)
 	end
 	return str
 end
+
+--[[
+-- EntTableCollection
+-- A collection of entity tables, entity tables can be swapped in and out of the collection
+-- Adds functionality for easily accessing entities
+--]]
+--
+
+--[[
+EntTableCollection = {}
+EntTableCollection.__index = EntTableCollection
+function EntTableCollection:new()
+	local table = {
+		__active_tables = {}
+	}
+	setmetatable(table, EntTableCollection)
+	return table
+end
+
+function EntTableCollection:AddTable(ent_table)
+	-- check if entity table is already active
+	for _,e in pairs(self.__active_tables) do
+		if ent_table.ID == e.ID then
+			return
+		end
+	end
+
+	table.insert(self.__active_tables, enttable) 
+end
+
+-- disables and entity table by it's unique ID
+function IRISGAME:DisableEntTable(ID)
+	for k,e in pairs(self.__active_tables) do
+		if e.ID == ID then
+			table.remove(self.ENT_TABLES, k)
+		end
+	end
+end
+--]]
 
 PlayerEntTable = EntTable:new()
 PlayerEntTable:AddEntity(test_ent)
