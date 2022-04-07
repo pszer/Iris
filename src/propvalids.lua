@@ -1,3 +1,22 @@
+--[[ utility functions for creating input validity functions for
+--   property tables
+--]]
+--
+
+-- limits property to be one of the entries in given table argument t
+function PropIsOneOf(t)
+	return function(x)
+		-- if x is in t then its a valid unput
+		for _,v in pairs(t) do
+			if v == x then
+				return true, x
+			end
+		end
+		-- otherwise its a bad input
+		return false, t[0]
+	end
+end
+
 --[[ utility function used in creating properties that are links
 --   to properties in other tables
 --

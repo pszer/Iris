@@ -24,6 +24,8 @@ EntPropPrototype = Props:prototype{
 	{"ent_sigdeletion", "boolean", true , nil, "if true the entity will send out SIG_DELETED upon deletion"}, -- done
 
 	{"ent_hp", "number", 1, nil,               "entities health points"},
-	{"ent_dieonnohp", "boolean", false, nil,   "if true an entity dies on 0 or less hp and activates death behaviour"} -- needs to be implemented
+	{"ent_dieonnohp", "boolean", false, nil,   "if true an entity dies on 0 or less hp and activates death behaviour"}, -- needs to be implemented
+
+	{"ent_body", "irisbody", nil, nil,         "entities body"}
 
 }

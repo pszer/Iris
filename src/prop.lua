@@ -5,7 +5,7 @@
 
 require "iristype"
 require "id"
-require "proplink"
+require "propvalids"
 
 Props = {}
 Props.__index = Prop
@@ -27,7 +27,7 @@ Props.__type  = "proptableprototype"
 -- validity checking functions work as follows
 -- they take 1 argument, which is what the property is being asked to be set to
 -- they should return true/false and the value that the property will be set to
--- if it returns false then an error is raised
+-- if it returns false as first argument then an error is raised
 --
 -- notes about types:
 -- functions are assumed to take no arguments and are called when indexed
@@ -46,9 +46,8 @@ function Props:prototype(arg)
 		-- i use "link" as a type to describe properties
 		-- that link to other properties/values a lot. this type
 		-- doesn't exist and these links are implemented as
-		-- functions but a link is easier to read and understand.
+		-- functions but the idea of a link is easier to read
 		-- only reason for this being here
-		-- (perhaps there's a better way of implementing links)
 		if property[1] == "link" then
 			property[1] = "function"
 		end
