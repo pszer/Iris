@@ -35,9 +35,19 @@ function Props:prototype(arg)
 	for _,row in pairs(arg) do
 		-- the property will be stored in p as
 		-- p[key] = {type, default, valid}
-		local property = {row[2], row[3], row[4], row[5] or row[2], row[6]~=nil}
+		local property = {row[2], row[3], row[4], row[5] or row[1].." "..row[2], row[6]~=nil}
 		setmetatable(property, PropsPrototypeRowMeta)
 		p[row[1]] = property
+
+		-- i use "link" as a type to describe properties
+		-- that link to other properties a lot. this type
+		-- doesn't exist and these links are implemented as
+		-- functions but a link is easier to read and understand.
+		-- only reason for this being here
+		-- (perhaps there's a better way of implementing links)
+		if property[2] == "link" then
+			property[2] = "function"
+		end
 	end
 
 	setmetatable(p, Props)
@@ -72,7 +82,9 @@ Props.__call = function (proto, init)
 
 	props.__proto = proto
 	props.__type = "proptable"
-	props.__newindex =
+	props.__newindex = -- this is huge, perhaps clean up
+	                   -- also each property table creates an instance of these metamethods.
+					   -- sharing them would use less memory
 	function (p, key, val)
 		local row = proto[key]
 		if row == nil then

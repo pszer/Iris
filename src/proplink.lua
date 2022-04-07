@@ -14,7 +14,7 @@ end
 
 -- use in situations where a property is expected to be linked
 -- but only a constant value is required
-function PropLinkConst(const)
+function PropConst(const)
 	return function()
 		return const
 	end

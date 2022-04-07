@@ -3,18 +3,14 @@
 --]]
 --
 
-require "prop"
+require "props/hitboxprops"
 
 Hitbox = {}
 Hitbox.__index = Hitbox
 
-function Hitbox:new(ax, ay, aw, ah, space, props)
+function Hitbox:new(props)
 	local box = {
-		x = ax, y = ay,
-		w = aw, h = ah,
-
-		space = space
-		props = 
+		props = HitboxPropPrototype(props)
 	}
 	setmetatable(box, Hitbox)
 	return box
