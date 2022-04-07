@@ -23,7 +23,7 @@ require 'table'
 require "props/entprops"
 require "signals"
 require "timer"
-require "id"
+require "body"
 
 IrisEnt = {__type = "irisent"}
 IrisEnt.__index = IrisEnt

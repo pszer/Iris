@@ -7,6 +7,7 @@ require "ent_table"
 require "input"
 require "prop"
 require "iristype"
+require "props/irisprops"
 
 IRISGAME = {
 
@@ -16,26 +17,12 @@ IRISGAME = {
 
 	-- List of enabled entity tables
 	--ENT_TABLES = {PlayerEntTable},
-	ENT_TABLES = EntTableCollection:new()
+	ENT_TABLES = EntTableCollection:new(),
 
-	-- ENTS provides functionality for easily accessing all
-	-- active entities from the table of active entity tables
-	--
-	-- ENTS is indexed with an entities ID, which returns the
-	-- active entity with that unique entity ID
-	-- the true functionality of ENTS is calling pairs(ENTS) which
-	-- allows for looping over all active entities
-	--[[ENTS = {}
-	ENTS.__index = function (id)
-		for _,enttable in pairs(ENT_TABLES) do
-			
-		end
-	end
-
-	--ENTS.__pairs = function ()--]]
+	props = IrisGamePropPrototype()
 }
 
-IRISGAME.ENT_TABLES:AddTable(PlayerEntTable)
+IRISGAME.props.iris_enttables:AddTable(PlayerEntTable)
 
 --[[ order for entity updates
 -- 1. collect signals
@@ -47,50 +34,48 @@ function IRISGAME:update_ents()
 	-- collect all signals from entities
 	local collect_signals = function (e)
 		for _,sig in pairs(e.__signals_pending) do
-			table.insert(self.SIGNAL_TABLE, sig)
+			table.insert(self.props.iris_signals, sig)
 		end
 		e:ClearSignals()
 	end
 
-	--for _,entity in self.ENT_TABLES:Pairs() do
-	for _,entity in pairs(self.ENT_TABLES) do
+	for _,entity in pairs(self.props.iris_enttables) do
 		collect_signals(entity)
-		--etable:Apply(collect_signals)
 	end
 
 	-- print signals for debugging
-	for _,v in pairs(self.SIGNAL_TABLE) do
-		if v:GetProp("sig_debug") then
-			print(GetTick() .. " SIGNAL " .. tostring(v))
+	for _,v in pairs(self.props.iris_signals) do
+		if v.props.sig_debug then
+			print(self.props.iris_tick .. " SIGNAL " .. tostring(v))
 		end
 	end
 
-	-- delete any entities marked for deletion (ENT_DELETE)
-	self.ENT_TABLES:DeleteMarked()
+	-- delete any entities with props.ent_delete == true
+	self.props.iris_enttables:DeleteMarked()
 
 	-- each entity will handle current signals
 	-- then call their update functions (if flags for these are enabled)
 	--
 	local update = function (e)
-		if e:GetProp("ent_catchsignal") then
-			for _,sig in pairs(self.SIGNAL_TABLE) do
+		if e.props.ent_catchsignal then
+			for _,sig in pairs(self.props.iris_signals) do
 				e:HandleSignal(sig)
 			end
 		end
 
-		if e:GetProp("ent_update") then
+		if e.props.ent_update then
 			e:Update()
 		end
 	end
 
-	for _,ent in pairs(self.ENT_TABLES) do
+	for _,ent in pairs(self.props.iris_enttables) do
 		if ent.props.ent_update then
 			ent:Update()
 		end
 	end
 
 	-- delete old signals
-	self.SIGNAL_TABLE = { }
+	self.props.iris_signals = { }
 end
 
 -- adds an entity table to the active entity table list
@@ -116,7 +101,9 @@ function IRISGAME:DisableEntTable(ID)
 	end
 end
 
+fps = 0
 function IRISGAME:update(dt)
+	fps = 1/dt
 	TICKACC = TICKACC + dt
 	if TICKACC >= TICKTIME then
 		TICKACC = TICKACC - TICKTIME
@@ -133,5 +120,5 @@ function IRISGAME:update(dt)
 end
 
 function IRISGAME:draw()
-
+	love.graphics.print("FPS " .. tostring(fps), 0,0)
 end

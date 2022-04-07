@@ -1,7 +1,7 @@
 require 'math'
 
 -- tick globals
-TICKTIME = 1/64.0
+TICKTIME = 1/60.0
 TICKACC = 0.0
 
 TICK = 0

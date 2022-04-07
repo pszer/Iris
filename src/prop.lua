@@ -29,6 +29,10 @@ Props.__type  = "proptableprototype"
 -- they should return true/false and the value that the property will be set to
 -- if it returns false then an error is raised
 --
+-- notes about types:
+-- functions are assumed to take no arguments and are called when indexed
+-- "link" is synonymous with "function"
+--
 function Props:prototype(arg)
 	local p = {}
 
@@ -40,13 +44,13 @@ function Props:prototype(arg)
 		p[row[1]] = property
 
 		-- i use "link" as a type to describe properties
-		-- that link to other properties a lot. this type
+		-- that link to other properties/values a lot. this type
 		-- doesn't exist and these links are implemented as
 		-- functions but a link is easier to read and understand.
 		-- only reason for this being here
 		-- (perhaps there's a better way of implementing links)
-		if property[2] == "link" then
-			property[2] = "function"
+		if property[1] == "link" then
+			property[1] = "function"
 		end
 	end
 
@@ -83,8 +87,8 @@ Props.__call = function (proto, init)
 	props.__proto = proto
 	props.__type = "proptable"
 	props.__newindex = -- this is huge, perhaps clean up
-	                   -- also each property table creates an instance of these metamethods.
-					   -- sharing them would use less memory
+	                   -- also each property table potentially creates an instance of these metamethods.
+					   -- sharing them would use less memory unless LuaJIT does magic i'm not aware of
 	function (p, key, val)
 		local row = proto[key]
 		if row == nil then
@@ -117,7 +121,11 @@ Props.__call = function (proto, init)
 	props.__index = function (p, key)
 		local v = rawget(p.__proptabledata, key)
 		if v then
-			return v
+			if type(v) == "function" then
+				return v()
+			else
+				return v
+			end
 		else
 			if p.__proto[key] then
 				return p.__proto[key].default
