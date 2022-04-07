@@ -17,8 +17,16 @@
 require 'table'
 require 'math'
 
+require "pairs"
+
 SortedTable = {}
 SortedTable.__index = SortedTable
+SortedTable.__pairs = function (t)
+	return pairs(t.__entries)
+end
+SortedTable.__ipairs = function (t)
+	return ipairs(t.__entries)
+end
 
 -- Creates a sorted table, a less than operator
 -- is required to specify order and an equality operator

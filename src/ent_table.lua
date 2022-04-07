@@ -15,6 +15,7 @@
 require "ent"
 require "sortedtable"
 require "props/enttableprops"
+require "pairs"
 
 EntTable = {
 	ENT_TABLE_COUNTER=0 ,
@@ -110,59 +111,55 @@ end
 EntTableCollection = {}
 EntTableCollection.__index = EntTableCollection
 EntTableCollection.__type  = "enttablecollection"
-
 -- BIG OL FUNCTION, maybe clean it up
--- 
-function EntTableCollection:Pairs()
-	-- index is {table_index, ent_key_in_table}
-	local _next = function(table_collection, index)
-		::recur::
-		--print("_next called", table_collection, index)
 
-		if index == nil or index[2] == nil then
-			--[[
-			if index ~= nil and index[2] == nil then
-				print("yo dat index[2] is nil doe")
-				print("index and index[1] is ", index and index[2])
-			end--]]
+EntTableCollection.__next = function(t, index)
+	::recur::
+	if index == nil or index[2] == nil then
+		--[[
+		if index ~= nil and index[2] == nil then
+			print("yo dat index[2] is nil doe")
+			print("index and index[1] is ", index and index[2])
+		end--]]
 
-			--print("point 1")
-			local n1 = pairs(table_collection.__active_tables)
-			local i,ent_table = n1(table_collection.__active_tables, index and index[1])
+		--print("point 1")
+		local n1 = pairs(t.__active_tables)
+		local i,ent_table = n1(t.__active_tables, index and index[1])
 
-			if not i then
-				--print("point 2")
-				return nil, nil
-			else
-				local n2 = pairs(ent_table.ents.__entries)
-				local ent_i, ent = n2(ent_table.ents.__entries)
-
-				if not ent_i then
-					--print("point 3")
-					index = {i, nil}
-					goto recur
-				else
-					--print("point 4")
-					return {i, ent_i}, ent
-				end
-			end
-		end
-
-		local ent_table_index = index[1]
-		local ent_table = table_collection.__active_tables[ent_table_index]
-		local ent_index = index[2]
-		local ent_table_next = pairs(ent_table.ents.__entries)
-		local next_ent_i, next_ent = ent_table_next(ent_table.ents.__entries, ent_index)
-
-		if not next_ent_i then
-			index = {ent_table_index, nil}
-			goto recur
+		if not i then
+			--print("point 2")
+			return nil, nil
 		else
-			return {ent_table_index, next_ent_i}, next_ent
+			local n2 = pairs(ent_table.ents.__entries)
+			local ent_i, ent = n2(ent_table.ents.__entries)
+
+			if not ent_i then
+				--print("point 3")
+				index = {i, nil}
+				goto recur
+			else
+				--print("point 4")
+				return {i, ent_i}, ent
+			end
 		end
 	end
 
-	return _next, self, nil
+	local ent_table_index = index[1]
+	local ent_table = t.__active_tables[ent_table_index]
+	local ent_index = index[2]
+	local ent_table_next = pairs(ent_table.ents.__entries)
+	local next_ent_i, next_ent = ent_table_next(ent_table.ents.__entries, ent_index)
+
+	if not next_ent_i then
+		index = {ent_table_index, nil}
+		goto recur
+	else
+		return {ent_table_index, next_ent_i}, next_ent
+	end
+end
+
+EntTableCollection.__pairs = function (t)
+	return EntTableCollection.__next, t, nil
 end
 
 function EntTableCollection:new()

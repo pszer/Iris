@@ -37,10 +37,6 @@ IRISGAME = {
 
 IRISGAME.ENT_TABLES:AddTable(PlayerEntTable)
 
-for i,v in pairs(IRISGAME.ENT_TABLES.__active_tables) do
-	print("wwwwwwwwwwwwwwww",i,v)
-end
-
 --[[ order for entity updates
 -- 1. collect signals
 -- 2. delete entities marked for deletion
@@ -56,7 +52,8 @@ function IRISGAME:update_ents()
 		e:ClearSignals()
 	end
 
-	for _,entity in self.ENT_TABLES:Pairs() do
+	--for _,entity in self.ENT_TABLES:Pairs() do
+	for _,entity in pairs(self.ENT_TABLES) do
 		collect_signals(entity)
 		--etable:Apply(collect_signals)
 	end
@@ -86,7 +83,7 @@ function IRISGAME:update_ents()
 		end
 	end
 
-	for _,ent in self.ENT_TABLES:Pairs() do
+	for _,ent in pairs(self.ENT_TABLES) do
 		if ent.props.ent_update then
 			ent:Update()
 		end
