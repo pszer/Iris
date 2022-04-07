@@ -4,7 +4,7 @@ logic
 DONE replace flag system with more robust type checked properties system
 DONE entity tables
 rooms, way of storing rooms
-hitboxes, hitbox collision, hitbox collections
+hitboxes, hitbox collision, hitbox collections (bodies)
 DONE finish input system with input queueries and key bindings
 saving and loading
 

@@ -18,16 +18,13 @@ require "props/enttableprops"
 require "pairs"
 
 EntTable = {
-	ENT_TABLE_COUNTER=0 ,
-
-	id_less_than = function (ent1, ent2)
+	__id_less_than = function (ent1, ent2)
 		return ent1.props.ent_id < ent2.props.ent_id
 	end ,
 
-	id_equality = function (ent1, ent2)
+	__id_equality = function (ent1, ent2)
 		return ent1.props.ent_id == ent2.props.ent_id
 	end
-
 }
 EntTable.__index = EntTable
 EntTable.__type  = "enttable"
@@ -35,12 +32,9 @@ EntTable.__type  = "enttable"
 function EntTable:new(props)
 	local this = {
 		props = EntTablePropPrototype(props),
-		ents = SortedTable:new(EntTable.id_less_than, EntTable.id_equality)
+		ents = SortedTable:new(EntTable.__id_less_than, EntTable.__id_equality)
 	}
 
-	this.props.enttable_id = self.ENT_TABLE_COUNTER
-
-	self.ENT_TABLE_COUNTER = self.ENT_TABLE_COUNTER + 1
 	setmetatable(this, EntTable)
 	return this
 end
@@ -75,7 +69,7 @@ end
 
 -- deleted entities marked for deletion
 function EntTable:DeleteMarked()
-	for k,v in pairs(self.ents.__entries) do
+	for k,v in pairs(self.ents) do
 		if v:GetProp("ent_delete") then
 			self.ents[k] = nil
 		end
@@ -174,7 +168,6 @@ function EntTableCollection:AddTable(ent_table)
 	-- check if entity table is already active
 	for _,e in pairs(self.__active_tables) do
 		if ent_table.props.enttable_id == e.props.enttable_id then
-			print("THE BAD")
 			return
 		end
 	end

@@ -5,8 +5,11 @@
 require "prop"
 
 EntTablePropPrototype = Props:prototype{
-	
-	{"enttable_id", "number", -1, nil,     "unique numeric id for an entity table"},
-	{"enttable_name", "string", "", nil,   "name for entity table"}
+
+	-- prop      prop     prop default    prop input     prop      read
+	-- name      type        value        validation     info      only
+
+	{"enttable_id", "number", 0, UniqueID_Valid(), "unique numeric id for an entity table", "readonly"},
+	{"enttable_name", "string", "", nil,            "name for entity table"}
 
 }

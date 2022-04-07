@@ -14,6 +14,8 @@ function Hitbox:new(ax, ay, aw, ah, space, props)
 		w = aw, h = ah,
 
 		space = space
-		proto = 
+		props = 
 	}
+	setmetatable(box, Hitbox)
+	return box
 end

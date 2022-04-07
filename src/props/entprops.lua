@@ -6,8 +6,11 @@ require "prop"
 
 EntPropPrototype = Props:prototype{
 
-	{"ent_name", "string", "undefined", nil,   "entities name"}, -- done
-	{"ent_id",   "number", -1, nil,            "entities unique id"}, -- done
+	-- prop      prop     prop default    prop input     prop      read
+	-- name      type        value        validation     info      only
+
+	{"ent_name", "string", "undefined", nil,         "entities name"}, -- done
+	{"ent_id",   "number", 0, UniqueID_Valid(), "entities unique id", "readonly"}, -- done
 
 	{"ent_x", "number", 0, nil,                "entities x position"}, -- done
 	{"ent_y", "number", 0, nil,                "entities x position"}, -- done

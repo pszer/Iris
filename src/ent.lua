@@ -23,8 +23,9 @@ require 'table'
 require "props/entprops"
 require "signals"
 require "timer"
+require "id"
 
-IrisEnt = { ENT_COUNTER=0 , __type = "irisent"}
+IrisEnt = {__type = "irisent"}
 IrisEnt.__index = IrisEnt
 
 function IrisEnt:new(props)
@@ -33,9 +34,7 @@ function IrisEnt:new(props)
 		__signals_pending = {}
 	}
 
-	this.props.ent_id = self.ENT_COUNTER
-
-	self.ENT_COUNTER = self.ENT_COUNTER + 1
+	--this.props.ent_id = IrisEnt.ID()
 	setmetatable(this,IrisEnt)
 
 	return this

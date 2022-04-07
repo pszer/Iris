@@ -4,9 +4,12 @@
 --
 
 require "iristype"
+require "id"
+require "proplink"
 
 Props = {}
 Props.__index = Prop
+Props.__type  = "proptableprototype"
 
 -- creates a prototype property table that can
 -- be reused several times
@@ -19,6 +22,7 @@ Props.__index = Prop
 -- valid     - function called when setting the value of a property to check validity
 --             if nil then there is no input validity checking
 -- info      - a string of information of what the property is for (optional)
+-- readonly  - if set to true then the property is unchangable after initial construction (optional)
 --
 -- validity checking functions work as follows
 -- they take 1 argument, which is what the property is being asked to be set to
@@ -31,7 +35,7 @@ function Props:prototype(arg)
 	for _,row in pairs(arg) do
 		-- the property will be stored in p as
 		-- p[key] = {type, default, valid}
-		local property = {row[2], row[3], row[4], row[5] or row[2]}
+		local property = {row[2], row[3], row[4], row[5] or row[2], row[6]~=nil}
 		setmetatable(property, PropsPrototypeRowMeta)
 		p[row[1]] = property
 	end
@@ -47,7 +51,7 @@ end
 -- prototype.key.default
 -- prototype.key.valid
 PropsPrototypeRowMeta = {
-	type = 1, default = 2, valid = 3, info = 4}
+	type = 1, default = 2, valid = 3, info = 4, readonly = 5}
 PropsPrototypeRowMeta.__index = function (row, k)
 	return rawget(row, rawget(PropsPrototypeRowMeta, k))
 end
@@ -64,14 +68,20 @@ end
 -- it has the type checking and validity checking of the prototype table in place
 Props.__call = function (proto, init)
 	local props = { __proptabledata = {} }
+	local enforce_read_only = false -- we ignore readonly when creating a property table, ugly doin this way but works
 
 	props.__proto = proto
+	props.__type = "proptable"
 	props.__newindex =
 	function (p, key, val)
 		local row = proto[key]
 		if row == nil then
 			print("property [" .. tostring(key) .. "] does not exist")
 			return
+		end
+
+		if row.readonly and enforce_read_only then
+			print("property [" .. tostring(key) .. "] is read only")
 		end
 
 		if row.type ~= nil and row.type ~= iristype(val) then
@@ -105,14 +115,24 @@ Props.__call = function (proto, init)
 		end
 	end
 
+	props.__pairs = function (p)
+		return pairs(p.__proptabledata)
+	end
+
+	props.__tostring = function (p)
+		local result = ""
+		for k,v in pairs(p.__proptabledata) do
+			result = result .. tostring(k) .. " = " .. tostring(v) .. "\n"
+		end
+		return result
+	end
+
 	setmetatable(props, props)
 
 	for key,row in pairs(proto) do
-		if init and init[key] then
-			props[key] = init[key]
-		end
 		props[key] = (init and init[key]) or proto[key].default
 	end
 
+	enforce_read_only = true
 	return props
 end
