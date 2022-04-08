@@ -40,6 +40,21 @@ function PropClamp(a,b)
 	end
 end
 
+--[[ when a properties default value is a table literal, that table is not unique
+--   and becomes shared across all property tables with that table as default
+--   this valid function will give a new table instance if the property is set to nil
+--]]
+function PropDefaultTable(table)
+	return function(x)
+		if not x then
+			local t = {unpack(table)}
+			return true, t
+		else
+			return true, x
+		end
+	end
+end
+
 --[[ utility function used in creating properties that are links
 --   to properties in other tables
 --

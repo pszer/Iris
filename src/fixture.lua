@@ -82,7 +82,22 @@ function IrisFixture:NewHitbox(props)
 	self:AddHitbox(hitbox)
 end
 
-testfixture = IrisFixture:new()
-testfixture:NewHitbox({hitbox_x = 5, hitbox_y = 5, hitbox_w = 10, hitbox_h = 10})
-testfixture:NewHitbox({hitbox_x = 10, hitbox_y = 10, hitbox_w = 10, hitbox_h = 10})
-testfixture:NewHitbox({hitbox_x = 0, hitbox_y = 0, hitbox_w = 5000, hitbox_h = 10})
+function IrisFixture.__tostring(f)
+	local s = "IrisFixture " .. f.props.fixture_name .. "\n"
+	for _,h in pairs(f.props.fixture_hitboxes) do
+		s = s .. tostring(h) .. "\n"
+	end
+	return s
+end
+
+testfixture = IrisFixture:new({fixture_name = "fixture1"})
+testfixture:NewHitbox({hitbox_x = 5, hitbox_y = 5, hitbox_w = 10, hitbox_h = 10, hitbox_solid=true    })
+testfixture:NewHitbox({hitbox_x = 10, hitbox_y = 10, hitbox_w = 10, hitbox_h = 10, hitbox_solid=true  })
+testfixture:NewHitbox({hitbox_x = 0, hitbox_y = 0, hitbox_w = 200, hitbox_h = 10, hitbox_solid=false })
+
+
+testfixture2 = IrisFixture:new({fixture_name = "fixture2"})
+testfixture2:NewHitbox({hitbox_x = 30, hitbox_y = 30, hitbox_w = 10, hitbox_h = 10, hitbox_solid=true})
+
+print(testfixture.props.fixture_name)
+print(testfixture2.props.fixture_name)

@@ -91,36 +91,28 @@ Props.__call = function (proto, init)
 	function (p, key, val)
 		local row = proto[key]
 		if row == nil then
-			print("property [" .. tostring(key) .. "] does not exist")
-			error()
-			return
+			error("property [" .. tostring(key) .. "] does not exist")
 		end
 
 		if row.readonly and enforce_read_only then
-			print("property [" .. tostring(key) .. "] is read only")
-			error()
-			return
+			error("property [" .. tostring(key) .. "] is read only")
 		end
 
-		if row.type ~= nil and row.type ~= iristype(val) then
-			print("property [" .. tostring(key) .. "] is a " .. row.type .. ", tried to assign a " .. iristype(val)
-			       .. " (" .. tostring(val) .. ")")
-			error()
-			return
-		end
-
+		local validvalue = val
 		if row.valid then
-			local good, validvalue = row.valid(val)
+			local good
+			good, validvalue = row.valid(val)
 			if not good then
-				print("value " .. tostring(val) .. " is invalid for property [" .. tostring(key) .. "]")
-				error()
-				return
-			else
-				rawset(p.__proptabledata, key, validvalue)
+				error("value " .. tostring(val) .. " is invalid for property [" .. tostring(key) .. "]")
 			end
-		else
-			rawset(p.__proptabledata, key, val)
 		end
+
+		if row.type ~= nil and row.type ~= iristype(validvalue) then
+			error("property [" .. tostring(key) .. "] is a " .. row.type .. ", tried to assign a " .. iristype(val)
+			       .. " (" .. tostring(val) .. ")")
+		end
+
+		rawset(p.__proptabledata, key, validvalue)
 	end
 
 	props.__index = function (p, key)

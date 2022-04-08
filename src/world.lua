@@ -6,6 +6,8 @@
 require "body"
 require "fixture"
 require "hitbox"
+require "room"
+require "props/worldprops"
 
 IrisWorld = {}
 IrisWorld.__index = IrisWorld
@@ -30,3 +32,29 @@ function IrisWorld:CollectEntTableCollection(enttable)
 		return enttable:CollectBodies()
 	end
 end
+
+function IrisWorld:CollectBody(body)
+	return function ()
+		return body
+	end
+end
+
+-- collects bodies from all of its given body collecting
+-- functions
+function IrisWorld:CollectBodies()
+	local bodies = {}
+
+	for _,collector in pairs(self.props.world_bodycollectors) do
+		local b = collector()
+
+		for _,v in pairs(b) do
+			table.insert(bodies, v)
+		end
+	end
+
+	return bodies
+end
+
+testworld = IrisWorld:new()
+testworld:CollectBody(testroom.props.room_body)
+print(testworld:CollectBodies())

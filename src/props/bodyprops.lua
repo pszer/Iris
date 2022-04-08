@@ -20,7 +20,7 @@ IrisBodyPropPrototype = Props:prototype{
 
 	{"body_type", "string", "static", PropIsOneOf{"static","dynamic","kinematic"},  "type can either be static, dynamic, or kinematic"},
 
-	{"body_fixtures", "table", {}, nil,       "collection of all fixtures owned by this body"},
-	{"body_activefixtures", "set", Set:new(), nil, "keys for all the active fixtures in this body"}
+	{"body_fixtures", "table", nil, PropDefaultTable{}, "collection of all fixtures owned by this body"},
+	{"body_activefixtures", "set", Set:new(), nil,      "keys for all the active fixtures in this body"}
 
 }

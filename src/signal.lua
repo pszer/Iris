@@ -1,18 +1,22 @@
 --[[
--- utility object for communication between entities and for communication
+-- object for communication between entities and for communication
 -- between entities and the game state
 -- entities can send signals to all other entities, each signal
--- has a sender id and destination id but all entities can recieve the
+-- has a sender entity id and destination entity id but all entities can recieve the
 -- signal and respond to it. each signal has a payload and properties
 --
 -- if sender/destination id is not required/unspecified use -1
 --
 -- entities handle signals before their update functions are called
 --
--- if the sig_debug prop is set it will be printed for debugging
--- [sig_debug_text] should be used in property table for outputting debug text
---
 -- common signals are in src/sig
+--
+-- the purpose of signals is to allow for entities to perform actions to other entities
+-- without having to care about whats at the other end, for example the player entity
+-- can send an interact signal at an entity and doesn't have to worry about whether or
+-- not that entity can be interacted with or what it should do when interacted with, that
+-- behavious is handled by the other entities signal handler
+--
 --]]
 
 require "props/sigprops"

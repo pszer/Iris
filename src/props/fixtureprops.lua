@@ -10,7 +10,7 @@ IrisFixturePropPrototype = Props:prototype{
 	-- name      type        value        validation     info      only
 	--
 	
-	{"fixture_hitboxes", "table", {}, nil, "hitboxes owned by this fixture"},
+	{"fixture_hitboxes", "table", nil, PropDefaultTable{}, "hitboxes owned by this fixture"},
 
 	{"fixture_name", "string", "fixture", nil, "fixtures name, a fixtures name should be unique in a body"},
 

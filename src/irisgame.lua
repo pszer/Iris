@@ -52,7 +52,9 @@ function IRISGAME:update_ents()
 	local update = function (e)
 		if e.props.ent_catchsignal then
 			for _,sig in pairs(self.props.iris_signals) do
-				e:HandleSignal(sig)
+				if not (sig.sig_onlyfordest and sig.sig_dest ~= e.ent_id) then
+					e:HandleSignal(sig)
+				end
 			end
 		end
 

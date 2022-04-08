@@ -13,7 +13,7 @@ function Set:new()
 end
 
 function Set:Add(x)
-	for _,v in self do
+	for _,v in pairs(self) do
 		if v == x then return end
 	end
 	table.insert(self, x)
@@ -31,7 +31,7 @@ function Set:Remove(x)
 end
 
 function Set:Search(x)
-	for i,v in self do
+	for i,v in pairs(self) do
 		if v == x then
 			return i
 		end

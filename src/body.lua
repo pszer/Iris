@@ -48,9 +48,9 @@ function IrisBody:ComputeBoundingBox(filter)
 
 	local boxes = {}
 	local empty = true
-	for _,fixture in pairs(self.props.body_fixtures) do
+	for _,fixture in pairs(fixtures) do
 		local box = {fixture:ComputeBoundingBox(filter)}
-		if box[0] then
+		if box[1] then
 			empty = false
 			table.insert(boxes, box)
 		end
@@ -72,6 +72,7 @@ function IrisBody:ActiveFixtures()
 			      " but this fixture doesn't exist in this body")
 		end
 	end
+	return a
 end
 
 -- adds a fixture to the body
@@ -81,9 +82,13 @@ function IrisBody:AddFixture(fixture, activate)
 	if self.props.body_fixtures[name] then
 		print("a fixture called (" .. ") already exists in body, tried to add a fixture with same name")
 	else
+		fixture.props.fixture_parent_x     = PropLink(self.props, "body_x")
+		fixture.props.fixture_parent_y     = PropLink(self.props, "body_y")
+
+		fixture.props.fixture_parent_scale = PropLink(self.props, "body_scale")
 		self.props.body_fixtures[name] = fixture
 		if activate then
-
+			self:ActivateFixture(name)
 		end
 	end
 end
@@ -96,7 +101,15 @@ function IrisBody:DisableFixture(key)
 	self.props.body_activefixtures:Remove(key)
 end
 
-body = IrisBody:new()
+function IrisBody.__tostring(b)
+	local s = "IrisBody " .. b.props.body_name .. "\n"
+	for _,fixture in pairs(b.props.body_fixtures) do
+		s = s .. tostring(fixture)
+	end
+	return s
+end
+
+body = IrisBody:new({body_x = 0, body_y = 0})
 body:AddFixture(testfixture, true)
 
-print(body:ComputeBoundingBox())
+print(body:ComputeBoundingBox{hitbox_solid=true})
