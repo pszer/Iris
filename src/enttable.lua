@@ -70,8 +70,18 @@ end
 -- deleted entities marked for deletion
 function EntTable:DeleteMarked()
 	for k,v in pairs(self.ents) do
-		if v:GetProp("ent_delete") then
+		if v.props.ent_delete then
 			self.ents[k] = nil
+		end
+	end
+end
+
+function EntTable:CollectBodies()
+	local bodies = {}
+	for _,ent in pairs(self.ents) do
+		local body = ent.props.ent_body
+		if body then
+			table.insert(b, body)
 		end
 	end
 end
@@ -188,6 +198,18 @@ function EntTableCollection:DeleteMarked()
 	for _,etable in pairs(self.__active_tables) do
 		etable:DeleteMarked()
 	end
+end
+
+-- returns a table of all bodies in 
+function EntTableCollection:GetBodies()
+	local bodies = {}
+	for _,etable in pairs(self.__active_tables) do
+		for _,body in pairs(etable:GetBodies()) do
+			table.insert(bodies, body)
+		end
+	end
+
+	return bodies
 end
 
 PlayerEntTable = EntTable:new()

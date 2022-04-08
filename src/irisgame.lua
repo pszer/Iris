@@ -3,22 +3,15 @@
 -- the games main update and draw function
 --]]
 
-require "ent_table"
+require "enttable"
 require "input"
 require "prop"
 require "iristype"
+require "world"
+require "room"
 require "props/irisprops"
 
 IRISGAME = {
-
-	-- All signals in the current tick are collected here
-	-- then deleted
-	SIGNAL_TABLE = {},
-
-	-- List of enabled entity tables
-	--ENT_TABLES = {PlayerEntTable},
-	ENT_TABLES = EntTableCollection:new(),
-
 	props = IrisGamePropPrototype()
 }
 
@@ -83,20 +76,20 @@ end
 -- should not be the only one but stored elsewhere
 function IRISGAME:ActivateEntTable(enttable)
 	-- check if entity table is already active
-	for _,e in pairs(self.ENT_TABLES) do
+	for _,e in pairs(self.props.iris_enttables) do
 		if enttable.ID == e.ID then
 			return
 		end
 	end
 
-	table.insert(self.ENT_TABLES, enttable) 
+	table.insert(self.props.iris_enttables, enttable) 
 end
 
 -- disables and entity table by it's unique ID
 function IRISGAME:DisableEntTable(ID)
-	for k,e in pairs(self.ENT_TABLES) do
+	for k,e in pairs(self.props.iris_enttables) do
 		if e.ID == ID then
-			table.remove(self.ENT_TABLES, k)
+			table.remove(self.props.iris_enttables, k)
 		end
 	end
 end

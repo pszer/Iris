@@ -18,15 +18,85 @@
 --]]
 --
 
+require "props/bodyprops"
 require "hitbox"
+require "fixture"
 
 IrisBody = {}
 IrisBody.__index = IrisBody
 IrisBody.__type = "irisbody"
 function IrisBody:new(props)
 	local t = {
-		props = IrisHitboxPropPrototype(props)
+		props = IrisBodyPropPrototype(props)
 	}
-	setmetatable(props, IrisBody)
+	setmetatable(t, IrisBody)
 	return t
 end
+
+--[[ computes the smallest bounding box enclosing the
+--   active hitboxes in a body. the hitboxes to include
+--   in the calculation in the filter argument
+--   for example, body:ComputeBoundingBox{"hitbox_solid" = true}
+--   only includes solid hitboxes in the calculation
+--
+--   returns x,y,w,h
+--   if no active hitboxes are in this body or no active hitboxes match the filter
+--   then it returns nil
+--]]
+function IrisBody:ComputeBoundingBox(filter)
+	local fixtures = self:ActiveFixtures()
+
+	local boxes = {}
+	local empty = true
+	for _,fixture in pairs(self.props.body_fixtures) do
+		local box = {fixture:ComputeBoundingBox(filter)}
+		if box[0] then
+			empty = false
+			table.insert(boxes, box)
+		end
+	end
+
+	return ComputeBoundingBox(boxes)
+end
+
+-- returns a table of all the active fixtures in this
+-- body
+function IrisBody:ActiveFixtures()
+	local a = {}
+	for _,key in pairs(self.props.body_activefixtures) do
+		local fixture = self.props.body_fixtures[key]
+		if fixture then
+			table.insert(a, fixture)
+		else
+			print("fixture (" .. key .. ") is active in body (" .. self.props.body_name ..
+			      " but this fixture doesn't exist in this body")
+		end
+	end
+end
+
+-- adds a fixture to the body
+-- if activate is true then it is automatically activated
+function IrisBody:AddFixture(fixture, activate)
+	local name = fixture.props.fixture_name
+	if self.props.body_fixtures[name] then
+		print("a fixture called (" .. ") already exists in body, tried to add a fixture with same name")
+	else
+		self.props.body_fixtures[name] = fixture
+		if activate then
+
+		end
+	end
+end
+
+function IrisBody:ActivateFixture(key)
+	self.props.body_activefixtures:Add(key)
+end
+
+function IrisBody:DisableFixture(key)
+	self.props.body_activefixtures:Remove(key)
+end
+
+body = IrisBody:new()
+body:AddFixture(testfixture, true)
+
+print(body:ComputeBoundingBox())

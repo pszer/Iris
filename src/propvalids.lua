@@ -3,6 +3,8 @@
 --]]
 --
 
+require 'math'
+
 -- limits property to be one of the entries in given table argument t
 function PropIsOneOf(t)
 	return function(x)
@@ -14,6 +16,27 @@ function PropIsOneOf(t)
 		end
 		-- otherwise its a bad input
 		return false, t[0]
+	end
+end
+
+-- limits numbers to integers
+function PropInteger()
+	return function (x)
+		return true, math.floor(x)
+	end
+end
+
+-- limits numbers to >= m
+function PropMin(m)
+	return function (x)
+		return true, math.max(m,x)
+	end
+end
+
+-- limits numbers to a <= x <= b
+function PropClamp(a,b)
+	return function (x)
+		return true, math.max(a , math.min(x,b))
 	end
 end
 

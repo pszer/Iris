@@ -92,16 +92,20 @@ Props.__call = function (proto, init)
 		local row = proto[key]
 		if row == nil then
 			print("property [" .. tostring(key) .. "] does not exist")
+			error()
 			return
 		end
 
 		if row.readonly and enforce_read_only then
 			print("property [" .. tostring(key) .. "] is read only")
+			error()
+			return
 		end
 
 		if row.type ~= nil and row.type ~= iristype(val) then
 			print("property [" .. tostring(key) .. "] is a " .. row.type .. ", tried to assign a " .. iristype(val)
 			       .. " (" .. tostring(val) .. ")")
+			error()
 			return
 		end
 
@@ -109,6 +113,8 @@ Props.__call = function (proto, init)
 			local good, validvalue = row.valid(val)
 			if not good then
 				print("value " .. tostring(val) .. " is invalid for property [" .. tostring(key) .. "]")
+				error()
+				return
 			else
 				rawset(p.__proptabledata, key, validvalue)
 			end
@@ -144,6 +150,14 @@ Props.__call = function (proto, init)
 			result = result .. tostring(k) .. " = " .. tostring(v) .. "\n"
 		end
 		return result
+	end
+
+	function props.rawget(key)
+		return rawget(p.__proptabledata, key)
+	end
+
+	function props.rawset(key, value)
+		return rawset(p.__proptabledata, key, value)
 	end
 
 	setmetatable(props, props)

@@ -10,8 +10,6 @@
 -- x,y                  - position co-ordinates
 -- Update()             - update function
 -- Delete()             - marks entity for deletion
--- GetFlag(flag)        - gets flag value
--- SetFlag(flag, value) - sets flag value
 -- HandleSignal(sig)    - gets given current signals
 -- SendSignal(sig)      - queues a signal to send next tick
 -- Props                - entity property table, properties are listed in props/entprops.lua 
@@ -44,18 +42,10 @@ function IrisEnt:Update()
 	-- do nothing
 end
 
-function IrisEnt:GetProp(k)
-	return self.props[k]
-end
-
-function IrisEnt:SetProp(k, v)
-	self.props[k] = v
-end
-
 -- marks entity for deletion
 function IrisEnt:Delete()
-	self:SetProp("ent_delete", true)
-	if self:GetProp("ent_sigdeletion") then
+	self.props.ent_delete = true
+	if self.props.ent_sigdeletion then
 		self:SendSignal("signal_deleted")
 	end
 end

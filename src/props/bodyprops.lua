@@ -2,8 +2,9 @@
 --]]
 
 require "prop"
+require "set"
 
-IrisHitboxPropPrototype = Props:prototype{
+IrisBodyPropPrototype = Props:prototype{
 
 	-- prop      prop     prop default    prop input     prop      read
 	-- name      type        value        validation     info      only
@@ -13,13 +14,13 @@ IrisHitboxPropPrototype = Props:prototype{
 	{"body_xvel", "number", 0, nil, "body x velocity"}, -- done
 	{"body_yvel", "number", 0, nil, "body x velocity"}, -- done
 
-	{"body_name", "string", "", nil, "hitbox name"}, -- done
+	{"body_name", "string", "irisbody", nil, "body name"}, -- done
 
 	{"body_scale" , "number", 1, nil,      "multiplier for the scale of a body (namely it scales children hitboxes)"}, -- done
 
-	{"body_type", "string", "static", PropIsOneOf{"static","dynamic","kinematic"},  "type can either be static, dynamic, or kinematic"}
+	{"body_type", "string", "static", PropIsOneOf{"static","dynamic","kinematic"},  "type can either be static, dynamic, or kinematic"},
 
-	{"body_fixtures", "table", {}, nil,       "collection of all fixtures owned by this body"}
-	{"body_activefixtures", "table", {}, nil, "names for all the active fixtures in this body"}
+	{"body_fixtures", "table", {}, nil,       "collection of all fixtures owned by this body"},
+	{"body_activefixtures", "set", Set:new(), nil, "keys for all the active fixtures in this body"}
 
 }
