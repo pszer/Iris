@@ -1,3 +1,5 @@
+-- ARCHIVED CODE
+
 --[[
 --  the hierarchy grid system used in world coarse collision detection (world.lua)
 --
@@ -22,8 +24,9 @@
 
 require 'math'
 require 'table'
+require 'profiler'
 
-GridHierarchy = { MAX_DEPTH = 10 }
+GridHierarchy = { MAX_DEPTH = 10 , ALLOC_STEPS = 8}
 GridHierarchy.__index = GridHierarchy
 
 POWER_OF_FOUR = {} -- calling math.pow is expensive so powers of four up to MAX_DEPTH are memorised here
@@ -40,8 +43,6 @@ function GridHierarchy:new(depth, width, height)
 		__width  = width,
 		__height = height,
 
-		__grid_indices = {},
-		__grid_body_count = {},
 		__grid_bodies     = {},
 		__grid_count      = 0,
 		__grid_length     = 0,
@@ -52,17 +53,18 @@ function GridHierarchy:new(depth, width, height)
 
 	setmetatable(t, GridHierarchy)
 
-	for i=1, t.__depth do
-		local e1,e2,e3 = {},{},{}
-		t.__grid_indices[i] = e1
-		t.__grid_body_count[i] = e2
-		t.__grid_bodies[i] = e3
-
-
-		for j=1, POWER_OF_FOUR[i] do
-			t.__grid_body_count[i][j] = 0
+	function traverse(e, i)
+		for quad=1,4 do
+			local emptytable = {}
+			e[quad] = emptytable
+			if i <= t.__depth then
+				traverse(e[quad], i+1)
+			end
 		end
+
+		e[5] = {}
 	end
+	traverse(t.__grid_bodies, 1)
 
 	local count = t:NodeCount()
 	t.__grid_count = count
@@ -167,39 +169,22 @@ function GridHierarchy:AddBodyToCell(index, body)
 		return
 	end
 
-	local depth, cell_i = self:GridIndex(index)
-	local data_i = self.__grid_indices[depth][cell_i]
-
-	-- if this cell is currently empty, we append an entry for it to __grid_bodies
-	if data_i == nil then
-		data_i = #self.__grid_bodies[depth] + 1
-		self.__grid_bodies[depth][data_i] = body
-
-		self.__grid_indices[depth][cell_i] = data_i
-		self.__grid_body_count[depth][cell_i] = 1
-	else
-		local body_count = self.__grid_body_count[depth][cell_i]
-
-		-- check if this body is already added to this cell
-		-- if it is then nothing needs to be done
-		for i=0,body_count-1 do
-			if body == self.__grid_bodies[depth][data_i + i] then
-				return
-			end
+	function traverse(e, j)
+		if j == #index or not index[j+1] then
+			return e[index[j]]
+		else
+			return traverse(e[index[j]], j+1)
 		end
+	end	
 
-		table.insert(self.__grid_bodies[depth], data_i + body_count, body)
-		self.__grid_body_count[depth][cell_i] = self.__grid_body_count[depth][cell_i] + 1
-	end
-
-	-- if the body is inserted in the middle of __grid_bodies, indices for everything
-	-- past where it is inserted need to be incremented
-	for i,j in pairs(self.__grid_indices[depth]) do
-		if j and j > data_i then
-			self.__grid_indices[depth][i] = j + 1
+	local cell = traverse(self.__grid_bodies, 1)
+	for i=1, #cell[5] do
+		if body == cell[5][i] then
+			return
 		end
 	end
 
+	table.insert(cell[5], body)
 
 	--[[print("data")
 	for i,v in pairs(gridtest.__grid_bodies[depth]) do
@@ -307,45 +292,22 @@ function GridHierarchy:RemoveBodyAtCell(index, body)
 		return false
 	end
 
-	local depth, cell_i = self:GridIndex(index)
-	local data_i = self.__grid_indices[depth][cell_i]
-
-	-- if this cell is currently empty, nothing is to be done
-	if not data_i then
-		return false
-	else
-		local body_count = self.__grid_body_count[depth][cell_i]
-
-		-- check if this body is in this cell
-		local found = nil
-		for i=0,body_count-1 do
-			if body == self.__grid_bodies[depth][data_i + i] then
-				found = i
-				break
-			end
+	function traverse(e, j)
+		if j == #index or not index[j+1] then
+			return e[index[j]]
+		else
+			return traverse(e[index[j]], j+1)
 		end
+	end	
 
-		if not found then
-			return false
-		end
-
-		table.remove(self.__grid_bodies[depth], data_i + found)
-		self.__grid_body_count[depth][cell_i] = self.__grid_body_count[depth][cell_i] - 1
-
-		-- special case if this body was the only one in this cell, the entry for this
-		-- cell in __grid_bodies is removed
-		if body_count == 1 then
-			self.__grid_indices[depth][cell_i] = nil
+	local cell = traverse(self.__grid_bodies, 1)
+	for i=1,#cell[5] do
+		if body == cell[5][i] then
+			table.remove(cell[5], i)
+			return true
 		end
 	end
-
-	-- if the body is removed in the middle of __grid_bodies, indices for everything
-	-- past where it is inserted need to be decremented
-	for i,j in pairs(self.__grid_indices[depth]) do
-		if j and j > data_i then
-			self.__grid_indices[depth][i] = j - 1
-		end
-	end
+	return false
 
 	--[[print("data")
 	for i,v in pairs(gridtest.__grid_bodies[depth]) do
@@ -362,8 +324,6 @@ function GridHierarchy:RemoveBodyAtCell(index, body)
 			print(i,v,p)
 		end
 	end--]]
-
-	return true
 end
 
 function GridHierarchy:GetBodiesAtCell(index)
@@ -403,8 +363,18 @@ function GridHierarchy:CellToArea(index)
 end
 
 function GridHierarchy:CellEmpty(index)
-	local d,i = self:GridIndex(index)
-	return self.__grid_body_count[d][i] == 0
+
+	function traverse(e, j)
+		if j == #index or not index[j+1] then
+			return e[index[j]]
+		else
+			return traverse(e[index[j]], j+1)
+		end
+	end	
+
+	local cell = traverse(self.__grid_bodies, 1)
+
+	return #cell[5] == 0
 end
 
 gridtest = GridHierarchy:new(3, 64, 64)
@@ -431,5 +401,5 @@ gridtest:RemoveBodyAtCell({2}, "L")
 gridtest:AddBodyToGrid("AA",16,16,8,8)
 gridtest:RemoveBodyFromGrid("AA")
 
-print("bodies", unpack(gridtest:GetBodiesAtCell({2,2,2})))
+--print("bodies", unpack(gridtest:GetBodiesAtCell({2,2,2})))
 print("fgfsfd", unpack(gridtest:CellXYToIndex(1,1)))

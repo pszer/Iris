@@ -21,6 +21,7 @@
 require "props/bodyprops"
 require "hitbox"
 require "fixture"
+require "set"
 
 IrisBody = {}
 IrisBody.__index = IrisBody
@@ -28,35 +29,41 @@ IrisBody.__type = "irisbody"
 function IrisBody:new(props)
 	local t = {
 		props = IrisBodyPropPrototype(props)
+
+		-- add AABB memo here
 	}
 	setmetatable(t, IrisBody)
 	return t
 end
 
 --[[ computes the smallest bounding box enclosing the
---   active hitboxes in a body. the hitboxes to include
---   in the calculation in the filter argument
---   for example, body:ComputeBoundingBox{"hitbox_solid" = true}
---   only includes solid hitboxes in the calculation
+--   active hitboxes in a body. the argument is for whether
+--   you want the bounding box for solid fixtures or non-solid fixtures
 --
 --   returns x,y,w,h
 --   if no active hitboxes are in this body or no active hitboxes match the filter
 --   then it returns nil
 --]]
-function IrisBody:ComputeBoundingBox(filter)
+function IrisBody:ComputeBoundingBox(solid)
 	local fixtures = self:ActiveFixtures()
 
 	local boxes = {}
 	local empty = true
-	for _,fixture in pairs(fixtures) do
-		local box = {fixture:ComputeBoundingBox(filter)}
-		if box[1] then
-			empty = false
-			table.insert(boxes, box)
+	for _,fixture in ipairs(fixtures) do
+		if fixture.props.fixture_solid == solid then
+		local box = {fixture:ComputeBoundingBox()}
+			if box[1] then
+				empty = false
+				table.insert(boxes, box)
+			end
 		end
 	end
 
-	return ComputeBoundingBox(boxes)
+	if boxes then
+		return ComputeBoundingBox(boxes)
+	else
+		return nil
+	end
 end
 
 -- returns a table of all the active fixtures in this
@@ -75,6 +82,19 @@ function IrisBody:ActiveFixtures()
 	return a
 end
 
+function IrisBody:ActiveHitboxes()
+	local f = self:ActiveFixtures()
+	local hitboxes = {}
+
+	for _,fixture in ipairs(f) do
+		for i,h in pairs(fixture.props.fixture_hitboxes) do
+			table.insert(hitboxes, h)
+		end
+	end
+
+	return hitboxes
+end
+
 -- adds a fixture to the body
 -- if activate is true then it is automatically activated
 function IrisBody:AddFixture(fixture, activate)
@@ -85,7 +105,6 @@ function IrisBody:AddFixture(fixture, activate)
 		fixture.props.fixture_parent_x     = PropLink(self.props, "body_x")
 		fixture.props.fixture_parent_y     = PropLink(self.props, "body_y")
 
-		fixture.props.fixture_parent_scale = PropLink(self.props, "body_scale")
 		self.props.body_fixtures[name] = fixture
 		if activate then
 			self:ActivateFixture(name)
@@ -109,7 +128,8 @@ function IrisBody.__tostring(b)
 	return s
 end
 
-body = IrisBody:new({body_x = 0, body_y = 0})
-body:AddFixture(testfixture, true)
+testbody = IrisBody:new({body_x = 0, body_y = 0})
+testbody:AddFixture(testfixture, true)
+testbody:AddFixture(testfixture2, true)
 
-print(body:ComputeBoundingBox{hitbox_solid=true})
+print(testbody:ComputeBoundingBox(true))

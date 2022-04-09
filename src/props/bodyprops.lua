@@ -16,8 +16,6 @@ IrisBodyPropPrototype = Props:prototype{
 
 	{"body_name", "string", "irisbody", nil, "body name"}, -- done
 
-	{"body_scale" , "number", 1, nil,      "multiplier for the scale of a body (namely it scales children hitboxes)"}, -- done
-
 	{"body_type", "string", "static", PropIsOneOf{"static","dynamic","kinematic"},  "type can either be static, dynamic, or kinematic"},
 
 	{"body_fixtures", "table", nil, PropDefaultTable{}, "collection of all fixtures owned by this body"},

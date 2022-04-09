@@ -12,23 +12,32 @@ end
 function love.draw()
 	GAMESTATE:draw()
 
-	love.graphics.origin()
-	love.graphics.scale(4.0)
-	love.graphics.translate(10,10)
-	for i=1,64 do
-		local index = gridtest:GridIndexInverse(gridtest.__depth, i)
-		local x,y,w,h = gridtest:CellToArea(index)
+	local bodies = testworld:CollectBodies()
 
-		if gridtest:CellEmpty(index) then
+	love.graphics.scale(3,3)
+	love.graphics.translate(100,100)
+
+	for _,b in ipairs(bodies) do
+		local fixtures = b:ActiveFixtures()
+		local hitboxes = b:ActiveHitboxes()
+
+		love.graphics.setColor(1,1,1)
+		for i,h in ipairs(hitboxes) do
+			local x,y,w,h = h:Position()
+
 			love.graphics.rectangle("line",x,y,w,h)
-		else
-			love.graphics.rectangle("fill",x,y,w,h)
 		end
 
+		love.graphics.setColor(0,0,1,0.5)
+		for i,f in ipairs(fixtures) do
+			local x,y,w,h = f:ComputeBoundingBox()
 
-		for j = 0, 10000 do
-			--gridtest:AddBodyToGrid("AA",16,16,8,8)
-			gridtest:RemoveBodyFromGrid("AA")
+			love.graphics.rectangle("line",x,y,w,h)
 		end
+
+		love.graphics.setColor(1,0,0,0.4)
+		local x,y,w,h = b:ComputeBoundingBox(true)
+
+		love.graphics.rectangle("line",x,y,w,h)
 	end
 end

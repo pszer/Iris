@@ -38,3 +38,19 @@ function Set:Search(x)
 	end
 	return nil
 end
+
+function EqualTables(a,b)
+	for i,v in pairs(a) do
+		if a[i] ~= b[i] then
+			return false
+		end
+	end
+
+	for i,v in pairs(b) do
+		if a[i] ~= b[i] then
+			return false
+		end
+	end
+
+	return true
+end

@@ -2,7 +2,7 @@
 -- put bodies in a world and the world then handles collision and physics
 --
 -- coarse collision detection (broad phase)
--- see hierarchygrid.lua
+-- see coarsecollision.lua
 --
 --]]
 --
@@ -12,7 +12,6 @@ require "fixture"
 require "hitbox"
 require "room"
 require "props/worldprops"
-require "hierarchygrid"
 
 IrisWorld = {}
 IrisWorld.__index = IrisWorld
@@ -21,29 +20,34 @@ IrisWorld.__type = "irisworld"
 function IrisWorld:new(props)
 	local this = {
 		props = IrisWorldPropPrototype(props),
-
-		__hierarchygrid = {}
 	}
 	setmetatable(this, IrisWorld)
 	return this
 end
 
 function IrisWorld:CollectEntTable(enttable)
-	return function ()
+	local f = function ()
 		return enttable:CollectBodies()
 	end
+	self:AddBodySourceFunction(f)
 end
 
 function IrisWorld:CollectEntTableCollection(enttable)
-	return function ()
-		return enttable:CollectBodies()
+	local f = function ()
+		return enttable:CreateBodies()
 	end
+	self:AddBodySourceFunction(f)
 end
 
 function IrisWorld:CollectBody(body)
-	return function ()
-		return body
+	local f = function ()
+		return {body}
 	end
+	self:AddBodySourceFunction(f)
+end
+
+function IrisWorld:AddBodySourceFunction(f)
+	table.insert(self.props.world_bodysources, f)
 end
 
 -- collects bodies from all of its given body collecting
@@ -51,10 +55,10 @@ end
 function IrisWorld:CollectBodies()
 	local bodies = {}
 
-	for _,collector in pairs(self.props.world_bodycollectors) do
+	for _,collector in pairs(self.props.world_bodysources) do
 		local b = collector()
 
-		for _,v in pairs(b) do
+		for _,v in ipairs(b) do
 			table.insert(bodies, v)
 		end
 	end
@@ -63,5 +67,5 @@ function IrisWorld:CollectBodies()
 end
 
 testworld = IrisWorld:new()
-testworld:CollectBody(testroom.props.room_body)
+testworld:CollectBody(testbody)
 print(testworld:CollectBodies())

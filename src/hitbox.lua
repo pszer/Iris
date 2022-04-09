@@ -25,14 +25,21 @@ end
 -- it's parent body and properties
 -- returns x,y,w,h
 function IrisHitbox:Position()
-	print("OI", self.props.hitbox_parent_x)
-	print("OI", self.props.hitbox_parent_y)
+	local x = self.props.hitbox_x  + self.props.hitbox_parent_x
+	local y = self.props.hitbox_y  + self.props.hitbox_parent_y
+	local w = self.props.hitbox_w
+	local h = self.props.hitbox_h
 
-	local scale = self.props.hitbox_scale * self.props.hitbox_parent_scale
-	local x = self.props.hitbox_x * scale + self.props.hitbox_parent_x
-	local y = self.props.hitbox_y * scale + self.props.hitbox_parent_y
-	local w = self.props.hitbox_w * scale
-	local h = self.props.hitbox_h * scale
+	return x,y,w,h
+end
+
+-- describes the hitboxes position without regards
+-- to parent
+function IrisHitbox:PositionOrigin()
+	local x = self.props.hitbox_x
+	local y = self.props.hitbox_y
+	local w = self.props.hitbox_w
+	local h = self.props.hitbox_h
 
 	return x,y,w,h
 end

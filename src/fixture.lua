@@ -20,64 +20,67 @@ IrisFixture.__type  = "irisfixture"
 
 function IrisFixture:new(props)
 	local this = {
-		props = IrisFixturePropPrototype(props)
+		props = IrisFixturePropPrototype(props),
+
+		__hitboxes_changed = true, -- used by compute bounding box to reduce recomputation
+		__memo_aabb = {nil,nil,nil,nil}
 	}
 	setmetatable(this, IrisFixture)
 	return this
 end
 
 --[[ computes the smallest bounding box enclosing the
---   hitboxes in a fixture. the hitboxes to include
---   in the calculation in the filter argument
---   for example, fixture:ComputeBoundingBox{"hitbox_solid" = true}
---   only includes solid hitboxes in the calculation
+--   hitboxes in a fixture
 --
 --   returns x,y,w,h
---   if no hitboxes are in this fixture or no hitboxes match the filter
+--   if no hitboxes are in this fixture
 --   then it returns nil
 --]]
-function IrisFixture:ComputeBoundingBox(filter)
-	filter = filter or {}
-	local xmin,ymin, xmax,ymax = nil,nil,nil,nil
+function IrisFixture:ComputeBoundingBox()
+	if self.__hitboxes_changed == false then
+		local xp = self.props.fixture_parent_x
+		local yp = self.props.fixture_parent_y
 
-	-- tests if a hitbox matched the filter given in the argument
-	local include = function (box)
-		for property, value in pairs(filter) do
-			if box.props[property] ~= value then
-				return false
-			end
-		end
-
-		return true
+		return self.__memo_aabb[1] + xp,
+		       self.__memo_aabb[2] + yp,
+		       self.__memo_aabb[3],
+		       self.__memo_aabb[4]
 	end
 
 	local boxes = {}
 	local empty = true
 	for _,box in pairs(self.props.fixture_hitboxes) do
-		if include(box) then
-			empty = false
-			local b = {box:Position()}
-			table.insert(boxes, b)
-		end
+		empty = false
+		local b = {box:PositionOrigin()}
+		table.insert(boxes, b)
 	end
 
 	if empty then
 		return nil,nil,nil,nil
 	else
-		return ComputeBoundingBox(boxes)
+		self.__hitboxes_changed = false
+		local x,y,w,h = ComputeBoundingBox(boxes)
+
+		self.__memo_aabb[1] = x
+		self.__memo_aabb[2] = y
+		self.__memo_aabb[3] = w
+		self.__memo_aabb[4] = h
+
+		return self:ComputeBoundingBox()
 	end
 end
 
 -- adds a new hitbox, settings up the corrent links
 function IrisFixture:AddHitbox(hitbox)
+	self.__hitboxes_changed = true
 	hitbox.props.hitbox_parent_x     = PropLink(self.props, "fixture_parent_x")
 	hitbox.props.hitbox_parent_y     = PropLink(self.props, "fixture_parent_y")
-	hitbox.props.hitbox_parent_scale = PropLink(self.props, "fixture_parent_scale")
 	table.insert(self.props.fixture_hitboxes, hitbox)
 end
 
 -- creates a new hitbox with given properties
 function IrisFixture:NewHitbox(props)
+	self.__hitboxes_changed = true
 	local hitbox = IrisHitbox:new(props)
 	self:AddHitbox(hitbox)
 end
@@ -91,13 +94,13 @@ function IrisFixture.__tostring(f)
 end
 
 testfixture = IrisFixture:new({fixture_name = "fixture1"})
-testfixture:NewHitbox({hitbox_x = 5, hitbox_y = 5, hitbox_w = 10, hitbox_h = 10, hitbox_solid=true    })
-testfixture:NewHitbox({hitbox_x = 10, hitbox_y = 10, hitbox_w = 10, hitbox_h = 10, hitbox_solid=true  })
-testfixture:NewHitbox({hitbox_x = 0, hitbox_y = 0, hitbox_w = 200, hitbox_h = 10, hitbox_solid=false })
-
+testfixture:NewHitbox({hitbox_x = 5, hitbox_y = 5, hitbox_w = 10, hitbox_h = 10 })
+testfixture:NewHitbox({hitbox_x = 10, hitbox_y = 10, hitbox_w = 10, hitbox_h = 10 })
 
 testfixture2 = IrisFixture:new({fixture_name = "fixture2"})
 testfixture2:NewHitbox({hitbox_x = 30, hitbox_y = 30, hitbox_w = 10, hitbox_h = 10, hitbox_solid=true})
 
 print(testfixture.props.fixture_name)
 print(testfixture2.props.fixture_name)
+print(testfixture:ComputeBoundingBox())
+print(testfixture:ComputeBoundingBox())
