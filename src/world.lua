@@ -1,5 +1,9 @@
 --[[
 -- put bodies in a world and the world then handles collision and physics
+--
+-- coarse collision detection (broad phase)
+-- see hierarchygrid.lua
+--
 --]]
 --
 
@@ -8,6 +12,7 @@ require "fixture"
 require "hitbox"
 require "room"
 require "props/worldprops"
+require "hierarchygrid"
 
 IrisWorld = {}
 IrisWorld.__index = IrisWorld
@@ -15,7 +20,9 @@ IrisWorld.__type = "irisworld"
 
 function IrisWorld:new(props)
 	local this = {
-		props = IrisWorldPropPrototype(props)
+		props = IrisWorldPropPrototype(props),
+
+		__hierarchygrid = {}
 	}
 	setmetatable(this, IrisWorld)
 	return this
