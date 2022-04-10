@@ -35,7 +35,6 @@ function SortedAABB:SortBodies(bodies, solid, axis)
 	local count = 1
 	local bodies_reindex = {true,true,true,true,true,true,true} -- avoid too much rehashing
 	for i,b in ipairs(bodies) do
-		print("hey",iristype(b))
 		local x,y,w,h = b:ComputeBoundingBox(solid)
 		if x then
 			xaxismin[count] = x
@@ -101,7 +100,9 @@ function TableVariance(t)
 	return total / n
 end
 
--- returns a table of collision pairs
+-- returns a table of collision
+-- the index to the returned table is a body and the key is a table
+-- of other bodies it might collide with
 function SortedAABB:GetPossibleCollisions()
 	local interval_bodies = {}
 	local bodies_in_interval = 0
@@ -112,8 +113,14 @@ function SortedAABB:GetPossibleCollisions()
 		-- and add it as a possible collision with all other bodies in the interval
 		if v[2] then
 			for i=1,bodies_in_interval do
-				if v[3]:CanCollideWith(interval_bodies[i]) then
-					table.insert(collisions, {v[3], interval_bodies[i]})
+				local cancollide, body1, body2 = v[3]:CanCollideWith(interval_bodies[i])
+				if cancollide then
+					local collidetable = collisions[body1]
+					if not collidetable then
+						collidetable = {}
+						collisions[body1] = collidetable
+					end
+					collidetable[#collidetable+1] = body2
 				end
 			end
 

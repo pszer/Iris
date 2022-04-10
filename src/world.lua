@@ -67,6 +67,20 @@ function IrisWorld:CollectBodies()
 	return bodies
 end
 
+-- given a table of pairs of possible body collisions to test, it will see what
+-- bodies collide, settings the pairs that don't collide to nil
+function IrisWorld:TestPossibleCollisions(totest, solid)
+	for i,p in ipairs(totest) do
+		local body1 = p[1]
+		local body2 = p[2]
+
+		--if the bodies bounding box do not collide, it is impossible
+		--for their individual hitboxes to collide
+		local x1,y1,w1,h1 = body1:ComputeBoundingBox(solid)
+		local x2,y2,w2,h2 = body2:ComputeBoundingBox(solid)
+	end
+end
+
 function IrisWorld:UpdateBodies()
 	bodies = self:CollectBodies()
 
@@ -93,7 +107,7 @@ sorted:SortBodies(testworld:CollectBodies(), true)
 end--]]
 
 collisions = sorted:GetPossibleCollisions()
-for i,v in pairs(collisions) do
+--[[for i,v in pairs(collisions) do
 	print("possible")
-	print(v[1].props.body_name, v[2].props.body_name)
-end
+	print(i.props.body_name, v[2].props.body_name)
+end--]]

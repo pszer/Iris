@@ -186,6 +186,24 @@ __BODY_TYPE_COLLISION_COMPARE__["static"]["kinematic"]  = false
 __BODY_TYPE_COLLISION_COMPARE__["kinematic"]["dynamic"]  = true
 __BODY_TYPE_COLLISION_COMPARE__["dynamic"]["kinematic"]  = true
 __BODY_TYPE_COLLISION_COMPARE__["kinematic"]["kinematic"]  = true
+-- collisions between bodies should be stored in the following order
+-- dynamic collides with static
+-- dynamic collides with dynamic
+-- kinematic collides with dynamic
+-- kinematic collides with kinematic
+__BODY_TYPE_COLLISION_SWAP_ORDER__ = {
+ static={}, dynamic={}, kinematic={}}
+__BODY_TYPE_COLLISION_SWAP_ORDER__["static"]["static"]    = false
+__BODY_TYPE_COLLISION_SWAP_ORDER__["static"]["dynamic"]   = true
+__BODY_TYPE_COLLISION_SWAP_ORDER__["dynamic"]["static"]   = false
+__BODY_TYPE_COLLISION_SWAP_ORDER__["dynamic"]["dynamic"]  = false
+__BODY_TYPE_COLLISION_SWAP_ORDER__["kinematic"]["static"]  = true
+__BODY_TYPE_COLLISION_SWAP_ORDER__["static"]["kinematic"]  = false
+__BODY_TYPE_COLLISION_SWAP_ORDER__["kinematic"]["dynamic"]  = false
+__BODY_TYPE_COLLISION_SWAP_ORDER__["dynamic"]["kinematic"]  = false
+__BODY_TYPE_COLLISION_SWAP_ORDER__["kinematic"]["kinematic"]  = false
+-- returns true/false and the bodies in collide type order
+-- eg staticbody:CanCollideWith(dynamicbody) = true, dynamicbody, staticbody
 function IrisBody:CanCollideWith(body)
 	local selftype = self.props.body_type
 	local bodytype = body.props.body_type
@@ -200,7 +218,11 @@ function IrisBody:CanCollideWith(body)
 	local bclasses = bprops.body_classes
 	local bclassesenabled = sprops.body_classesenabled--]]
 
-	return true
+	if __BODY_TYPE_COLLISION_SWAP_ORDER__[selftype][bodytype] then
+		return true, body, self
+	else
+		return true, self, body
+	end
 end
 
 testfixture = IrisFixture:new({fixture_name = "fixture1"})
@@ -224,7 +246,7 @@ testbody3:AddFixture(testfixture3, true)
 
 testfixture4 = IrisFixture:new({fixture_name = "fixture4"})
 testfixture4:NewHitbox({hitbox_x = 0, hitbox_y = 0, hitbox_w = 800, hitbox_h = 100})
-testbody4 = IrisBody:new({body_x = 0, body_y = 350, body_name = "body3", body_type = "static"})
+testbody4 = IrisBody:new({body_x = 0, body_y = 350, body_name = "body4", body_type = "static"})
 testbody4:AddFixture(testfixture4, true)
 
 print("ppp")
