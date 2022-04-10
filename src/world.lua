@@ -12,6 +12,7 @@ require "fixture"
 require "hitbox"
 require "room"
 require "props/worldprops"
+require "coarsecollision"
 
 IrisWorld = {}
 IrisWorld.__index = IrisWorld
@@ -66,6 +67,33 @@ function IrisWorld:CollectBodies()
 	return bodies
 end
 
+function IrisWorld:UpdateBodies()
+	bodies = self:CollectBodies()
+
+	for i,v in ipairs(bodies) do
+		if v.props.body_type ~= "static" then
+			v.props.body_x = v.props.body_x + v.props.body_xvel
+			v.props.body_y = v.props.body_y + v.props.body_yvel
+			v.props.body_yvel = v.props.body_yvel + self.props.world_gravity
+		end
+	end
+end
+
 testworld = IrisWorld:new()
 testworld:CollectBody(testbody)
-print(testworld:CollectBodies())
+testworld:CollectBody(testbody2)
+testworld:CollectBody(testbody3)
+testworld:CollectBody(testbody4)
+
+sorted = SortedAABB:new()
+sorted:SortBodies(testworld:CollectBodies(), true)
+
+--[[for i,v in ipairs(sorted.data) do
+	print(unpack(v))
+end--]]
+
+collisions = sorted:GetPossibleCollisions()
+for i,v in pairs(collisions) do
+	print("possible")
+	print(v[1].props.body_name, v[2].props.body_name)
+end

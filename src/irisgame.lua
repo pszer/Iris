@@ -107,10 +107,12 @@ function IRISGAME:update(dt)
 		--
 
 		self:update_ents()
+		testworld:UpdateBodies()
 
 		UpdateKeys()
 
 		IncrementTick()
+
 	end
 end
 

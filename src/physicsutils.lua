@@ -14,7 +14,12 @@
 function ComputeBoundingBox(boxes)
 	local xmin,ymin,xmax,ymax
 	local first = true
-	for _,box in pairs(boxes) do
+
+	local mathmin = math.min
+	local mathmax = math.max
+	local unpack = unpack
+
+	for _,box in ipairs(boxes) do
 		if first then
 			xmin,ymin, xmax,ymax = unpack(box)
 			xmax = xmin + xmax
@@ -23,10 +28,10 @@ function ComputeBoundingBox(boxes)
 		else
 			local x,y,w,h = unpack(box)
 
-			xmin = math.min(xmin, x)
-			ymin = math.min(ymin, y)
-			xmax = math.max(xmax, x+w)
-			ymax = math.max(ymax, y+h)
+			xmin = mathmin(xmin, x)
+			ymin = mathmin(ymin, y)
+			xmax = mathmax(xmax, x+w)
+			ymax = mathmax(ymax, y+h)
 		end
 	end
 

@@ -89,3 +89,66 @@ function SortedTable:Search(x)
 		return nil, nil
 	end
 end
+
+-- inserts sorted table b into self
+function SortedTable:Merge(b)
+	local i, j = 1, 1
+
+	while j <= b.__length do
+		if i > self.__length or not self.__lessthan(self.__entries[i], b.__entries[j]) then
+			table.insert(self.__entries, i, b.__entries[j])
+			i = i + 1
+			j = j + 1
+			self.__length = self.__length + 1
+		else
+			i = i + 1
+		end
+	end
+end
+
+function CombineSortedTable(a,b)
+	local result = SortedTable:new()
+
+	local i, j, k = 1, 1, 1
+	local an = a.__length
+	local bn = b.__length
+
+	while k < an + bn do
+		if i > an then
+			result.__entries[k] = b.__entries[j]
+			j = j + 1
+		elseif j > an then
+			result.__entries[k] = a.__entries[i]
+			i = i + 1
+		elseif a.__lessthan(b.__entries[j], a.__entries[i]) then
+			result.__entries[k] = b.__entries[j]
+			j = j + 1
+		else
+			result.__entries[k] = a.__entries[i]
+			i = i + 1
+		end
+
+		k = k + 1
+	end
+
+	result.__length = an + bn
+	return result
+end
+
+function _lt_(a,b) return a<b end
+function _eq_(a,b) return a==b end
+st1 = SortedTable:new(_lt_,_eq_)
+st2 = SortedTable:new(_lt_,_eq_)
+
+st1:Add(5)
+st1:Add(9)
+st1:Add(1)
+st1:Add(3)
+st2:Add(2)
+st2:Add(8)
+st2:Add(7)
+st2:Add(4)
+st2:Add(6)
+
+st3 = CombineSortedTable(st1, st2)
+print(unpack(st3.__entries))

@@ -4,6 +4,7 @@
 --
 
 require 'math'
+require "set"
 
 -- limits property to be one of the entries in given table argument t
 function PropIsOneOf(t)
@@ -49,6 +50,16 @@ function PropDefaultTable(table)
 		if not x then
 			local t = {unpack(table)}
 			return true, t
+		else
+			return true, x
+		end
+	end
+end
+
+function PropEmptySet()
+	return function(x)
+		if not x then
+			return true, Set:new()
 		else
 			return true, x
 		end

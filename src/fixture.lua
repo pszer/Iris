@@ -40,11 +40,12 @@ function IrisFixture:ComputeBoundingBox()
 	if self.__hitboxes_changed == false then
 		local xp = self.props.fixture_parent_x
 		local yp = self.props.fixture_parent_y
+		local memo = self.__memo_aabb
 
-		return self.__memo_aabb[1] + xp,
-		       self.__memo_aabb[2] + yp,
-		       self.__memo_aabb[3],
-		       self.__memo_aabb[4]
+		return memo[1] + xp,
+		       memo[2] + yp,
+		       memo[3],
+		       memo[4]
 	end
 
 	local boxes = {}
@@ -60,11 +61,11 @@ function IrisFixture:ComputeBoundingBox()
 	else
 		self.__hitboxes_changed = false
 		local x,y,w,h = ComputeBoundingBox(boxes)
-
-		self.__memo_aabb[1] = x
-		self.__memo_aabb[2] = y
-		self.__memo_aabb[3] = w
-		self.__memo_aabb[4] = h
+		local memo = self.__memo_aabb
+		memo[1] = x
+		memo[2] = y
+		memo[3] = w
+		memo[4] = h
 
 		return self:ComputeBoundingBox()
 	end
@@ -75,7 +76,8 @@ function IrisFixture:AddHitbox(hitbox)
 	self.__hitboxes_changed = true
 	hitbox.props.hitbox_parent_x     = PropLink(self.props, "fixture_parent_x")
 	hitbox.props.hitbox_parent_y     = PropLink(self.props, "fixture_parent_y")
-	table.insert(self.props.fixture_hitboxes, hitbox)
+	local h = self.props.fixture_hitboxes
+	h[#h+1] = hitbox
 end
 
 -- creates a new hitbox with given properties
@@ -92,15 +94,3 @@ function IrisFixture.__tostring(f)
 	end
 	return s
 end
-
-testfixture = IrisFixture:new({fixture_name = "fixture1"})
-testfixture:NewHitbox({hitbox_x = 5, hitbox_y = 5, hitbox_w = 10, hitbox_h = 10 })
-testfixture:NewHitbox({hitbox_x = 10, hitbox_y = 10, hitbox_w = 10, hitbox_h = 10 })
-
-testfixture2 = IrisFixture:new({fixture_name = "fixture2"})
-testfixture2:NewHitbox({hitbox_x = 30, hitbox_y = 30, hitbox_w = 10, hitbox_h = 10, hitbox_solid=true})
-
-print(testfixture.props.fixture_name)
-print(testfixture2.props.fixture_name)
-print(testfixture:ComputeBoundingBox())
-print(testfixture:ComputeBoundingBox())

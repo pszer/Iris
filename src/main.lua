@@ -14,9 +14,6 @@ function love.draw()
 
 	local bodies = testworld:CollectBodies()
 
-	love.graphics.scale(3,3)
-	love.graphics.translate(100,100)
-
 	for _,b in ipairs(bodies) do
 		local fixtures = b:ActiveFixtures()
 		local hitboxes = b:ActiveHitboxes()
@@ -35,9 +32,11 @@ function love.draw()
 			love.graphics.rectangle("line",x,y,w,h)
 		end
 
-		love.graphics.setColor(1,0,0,0.4)
+		love.graphics.setColor(1,0,0,0.9)
 		local x,y,w,h = b:ComputeBoundingBox(true)
 
 		love.graphics.rectangle("line",x,y,w,h)
 	end
+	
+	love.graphics.setColor(1,1,1)
 end

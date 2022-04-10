@@ -16,9 +16,13 @@ IrisBodyPropPrototype = Props:prototype{
 
 	{"body_name", "string", "irisbody", nil, "body name"}, -- done
 
-	{"body_type", "string", "static", PropIsOneOf{"static","dynamic","kinematic"},  "type can either be static, dynamic, or kinematic"},
+	{"body_type", "string", "dynamic", PropIsOneOf{"static","dynamic","kinematic"},  "type can either be static or dynamic", "readonly"},
 
-	{"body_fixtures", "table", nil, PropDefaultTable{}, "collection of all fixtures owned by this body"},
-	{"body_activefixtures", "set", Set:new(), nil,      "keys for all the active fixtures in this body"}
-
+	-- following not implemented for now
+	{"body_classes", "table", nil, PropDefaultTable{}, [[a list of strings that determine the bodies classes i.e what they
+	                                                     are in the game, bodies will only collide with bodies of classes specified
+														 in body_classesenabled]]},
+	{"body_classesenabled", "table", nil, PropDefaultTable{"world"}, [[a list of strings that determine the bodies classes i.e what they
+	                                                          are in the game, bodies will only collide with bodies of classes specified
+										    			      in body_classesenabled]]}
 }
