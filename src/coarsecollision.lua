@@ -10,7 +10,7 @@ SortedAABB.__index = SortedAABB
 function SortedAABB:new()
 	local t = {
 		data = nil, -- each entry in data is {pos,is_min,body}
-		xaxis = true, -- the axis used for sweep and pruning
+		axis = "", -- the axis used for sweep and pruning
 
 		__lessthan = function (a,b)
 			return a[1] < b[1]
@@ -62,28 +62,31 @@ function SortedAABB:SortBodies(bodies, solid, axis, addvelocity)
 			count = count + 1
 		end
 	end
-	local xvar, yvar
-	if axis then
-		if axis == "x" then
-			xvar = 1
-			yvar = 0
+
+	local xvar,yvar = 0,0
+	if self.axis == "" then
+		if axis and axis ~= "" then
+			if axis == "x" then
+				xvar = 1
+				yvar = 0
+			else
+				yvar = 1
+				xvar = 0
+			end
 		else
-			yvar = 1
-			xvar = 0
+			xvar = TableVariance(xaxismin)
+			yvar = TableVariance(yaxismin)
 		end
-	else
-		xvar = TableVariance(xaxismin)
-		yvar = TableVariance(yaxismin)
 	end
 
 	local axismin, axismax
 
-	if xvar > yvar then
-		self.xaxis = true
+	if self.axis == "x" or xvar > yvar then
+		self.axis = "x"
 		axismin = xaxismin
 		axismax = xaxismax
 	else
-		self.xaxis = false
+		self.axis = "y"
 		axismin = yaxismin
 		axismax = yaxismax
 	end
@@ -117,9 +120,186 @@ function TableVariance(t)
 	return total / n
 end
 
+function SortedAABB:RemoveBody(body)
+	local ai, bi = nil, nil
+	for i,v in ipairs(self.data) do
+		if v[3] == body then
+			if v[2] == true then
+				ai = i
+			else
+				bi = i
+				break
+			end
+		end
+	end
+
+	if ai then
+		self.data:Remove(bi)
+		self.data:Remove(ai)
+	end
+end
+SortedAABB.RemoveHitbox = SortedAABB.RemoveBody
+
+function SortedAABB:AddBody(body, solid, addvelocity)
+	local x,y,w,h = body:ComputeBoundingBox(solid)
+	if x then
+		if addvelocity then
+			local bprops = body.props
+			local xv = bprops.body_xvel
+			local yv = bprops.body_yvel
+			if xv < 0 then
+				x = x + xv
+				w = w - xv
+			else
+				w = w + xv
+			end
+
+			if yv < 0 then
+				y = y + yv
+				h = h - yv
+			else
+				h = h + yv
+			end
+		end
+	else
+		return
+	end
+
+	local axismin, axismax
+	if self.axis == "x" then
+		axismin,axismax = x,x+w
+	else
+		axismin,axismax = y,y+h
+	end
+
+	self.data:Add{axismin, true, body}
+	self.data:Add{axismax, false, body}
+end
+
+-- same functions as above but for hiboxes
+-- repeeated code but reduces overhead
+function SortedAABB:SortHitboxes(hitboxes, axis, addvelocity)
+	local xaxismin = {}
+	local xaxismax = {}
+	local yaxismin = {}
+	local yaxismax = {}
+
+	local count = 1
+	local hitboxes_reindex = {true,true,true,true,true,true,true} -- avoid too much rehashing
+	for i,hitbox in ipairs(hitboxes) do
+		local x,y,w,h = hitbox:Position(false)
+		if x then
+			if addvelocity then
+				local xv,yv = 0,0
+				local b = hitbox.props.hitbox_parentbody
+				if b then
+					local xv = b.props.body_xvel
+					local yv = b.props.body_yvel
+					if xv < 0 then
+						x = x + xv
+						w = w - xv
+					else
+						w = w + xv
+					end
+
+					if yv < 0 then
+						y = y + yv
+						h = h - yv
+					else
+						h = h + yv
+					end
+				end
+			end
+
+			xaxismin[count] = x
+			yaxismin[count] = y
+			xaxismax[count] = x + w
+			yaxismax[count] = y + h
+			hitboxes_reindex[count] = hitboxes[i]
+			count = count + 1
+		end
+	end
+
+	local xvar,yvar = 0,0
+	if self.axis == "" then
+		if axis and axis ~= "" then
+			if axis == "x" then
+				xvar = 1
+				yvar = 0
+			else
+				yvar = 1
+				xvar = 0
+			end
+		else
+			xvar = TableVariance(xaxismin)
+			yvar = TableVariance(yaxismin)
+		end
+	end
+
+	local axismin, axismax
+
+	if self.axis == "x" or xvar > yvar then
+		self.axis = "x"
+		axismin = xaxismin
+		axismax = xaxismax
+	else
+		self.axis = "y"
+		axismin = yaxismin
+		axismax = yaxismax
+	end
+
+	local maxes = SortedTable:new(self.__lessthan, self.__equality)
+	for i=1,#axismin do
+		self.data:Add{axismin[i], true, hitboxes_reindex[i]}
+		maxes:Add{axismax[i], false, hitboxes_reindex[i]}
+	end
+
+	self.data:Merge(maxes)
+end
+
+function SortedAABB:AddHitbox(hitbox, addvelocity)
+	local x,y,w,h = hitbox:Position()
+	if x then
+		if addvelocity then
+			local b = hitbox.props.hitbox_parentbody
+			local xv,yv = 0,0
+			if b then
+				local bprops = b.props
+				local xv = bprops.body_xvel
+				local yv = bprops.body_yvel
+				if xv < 0 then
+					x = x + xv
+					w = w - xv
+				else
+					w = w + xv
+				end
+
+				if yv < 0 then
+					y = y + yv
+					h = h - yv
+				else
+					h = h + yv
+				end
+			end
+		end
+	else
+		return
+	end
+
+	local axismin, axismax
+	if self.axis == "x" then
+		axismin,axismax = x,x+w
+	else
+		axismin,axismax = y,y+h
+	end
+
+	self.data:Add{axismin, true, hitbox}
+	self.data:Add{axismax, false, hitbox}
+end
+
 -- returns a table of collision
 -- the index to the returned table is a body and the key is a table
--- of other bodies it might collide with
+-- of other bodies/hitboxes it might collide with
 function SortedAABB:GetPossibleCollisions()
 	local interval_bodies = {}
 	local bodies_in_interval = 0
@@ -154,23 +334,4 @@ function SortedAABB:GetPossibleCollisions()
 	end
 
 	return collisions
-end
-
-function SortedAABB:RemoveBody(body)
-	local ai, bi = nil, nil
-	for i,v in ipairs(self.data) do
-		if v[3] == body then
-			if v[2] == true then
-				ai = i
-			else
-				bi = i
-				break
-			end
-		end
-	end
-
-	if ai then
-		body.data:Remove(ai)
-		body.data:Remove(bi)
-	end
 end

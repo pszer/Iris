@@ -74,8 +74,10 @@ end
 -- adds a new hitbox, settings up the corrent links
 function IrisFixture:AddHitbox(hitbox)
 	self.__hitboxes_changed = true
-	hitbox.props.hitbox_parent_x     = PropLink(self.props, "fixture_parent_x")
-	hitbox.props.hitbox_parent_y     = PropLink(self.props, "fixture_parent_y")
+	hitbox.props.hitbox_parent_x      = PropLink(self.props, "fixture_parent_x")
+	hitbox.props.hitbox_parent_y      = PropLink(self.props, "fixture_parent_y")
+	hitbox.props.hitbox_parentfixture = fixture 
+	hitbox.props.hitbox_parentbody = self.props.fixture_parent
 	local h = self.props.fixture_hitboxes
 	h[#h+1] = hitbox
 end
@@ -93,4 +95,13 @@ function IrisFixture.__tostring(f)
 		s = s .. tostring(h) .. "\n"
 	end
 	return s
+end
+
+function IrisFixture:SetFixtureHitboxesParent(body)
+	for _,box in pairs(self.props.fixture_hitboxes) do
+		box.props.hitbox_parentbody = body
+		box.props.hitbox_parentfixture = self
+		box.props.hitbox_parent_x      = PropLink(self.props, "fixture_parent_x")
+		box.props.hitbox_parent_y      = PropLink(self.props, "fixture_parent_y")
+	end
 end

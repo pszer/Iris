@@ -1,0 +1,39 @@
+> Total time: 0.004106 s
+--------------------------------------------------------------------------------------
+| FILE                : FUNCTION                    : LINE   : TIME   : %     : #    |
+--------------------------------------------------------------------------------------
+| world               : CollideBodies               :   118  : 0.0039 : 94.0  :    1 |
+| world               : UpdateBodies                :    95  : 0.0010 : 23.8  :    1 |
+| body                : handler                     :   264  : 0.0010 : 23.8  :    1 |
+| prop                : __index                     :   118  : 0.0008 : 19.1  :  144 |
+| coarsecollision     : GetPossibleCollisions       :   301  : 0.0007 : 16.3  :    2 |
+| prop                : __newindex                  :    91  : 0.0007 : 15.9  :    9 |
+| coarsecollision     : SortHitboxes                :   181  : 0.0005 : 11.9  :    2 |
+| coarsecollision     : AddBody                     :   143  : 0.0004 : 9.2   :    3 |
+| body                : CanCollideWith              :   241  : 0.0004 : 8.8   :   13 |
+| sortedtable         : Add                         :    45  : 0.0003 : 8.3   :   12 |
+| physicsutils        : DynamicRectStaticRectCollisi:   153  : 0.0003 : 8.0   :    7 |
+| physicsutils        : RayRectangleCollision       :    66  : 0.0003 : 6.8   :    7 |
+| body                : ComputeBoundingBox          :    60  : 0.0002 : 5.2   :   13 |
+| hitbox              : Position                    :    27  : 0.0002 : 5.2   :    5 |
+| world               : CollectBodies               :    61  : 0.0002 : 4.9   :    1 |
+| hitbox              : CanCollideWith              :    58  : 0.0002 : 4.8   :    3 |
+| coarsecollision     : RemoveBody                  :   123  : 0.0002 : 4.7   :    3 |
+| coarsecollision     : __lessthan                  :    15  : 0.0001 : 2.7   :   33 |
+| physicsutils        : ISNAN                       :    59  : 0.0001 : 2.6   :   28 |
+| iristype            : iristype                    :     9  : 0.0001 : 2.2   :    9 |
+| sortedtable         : Merge                       :    94  : 0.0001 : 1.5   :    2 |
+--------------------------------------------------------------------------------------
+| sortedtable         : Remove                      :    62  : ~      : ~     :    6 |
+| sortedtable         : new                         :    34  : ~      : ~     :    3 |
+| coarsecollision     : TableVariance               :   112  : ~      : ~     :    2 |
+| world               : collector                   :    49  : ~      : ~     :    6 |
+| coarsecollision     : new                         :    10  : ~      : ~     :    1 |
+| coarsecollision     : TableAverage                :   103  : ~      : ~     :    2 |
+| body                : ActiveHitboxes              :   126  : ~      : ~     :    2 |
+| profiler            : stop                        :   225  : ~      : ~     :    1 |
+| prop                : __index                     :    68  : ~      : ~     :   36 |
+| pairs               : ipairs                      :    15  : ~      : ~     :   28 |
+| pairs               : pairs                       :     8  : ~      : ~     :    3 |
+| sortedtable         : ipairs                      :    27  : ~      : ~     :    5 |
+--------------------------------------------------------------------------------------

@@ -15,6 +15,10 @@ IrisHitboxPropPrototype = Props:prototype{
 
 	{"hitbox_parent_x", "link", PropConst(0), nil, "link to a hitbox's fixture x to be treated as origin"},
 	{"hitbox_parent_y", "link", PropConst(0), nil, "link to a hitbox's fixture y to be treated as origin"},
+	{"hitbox_parentbody", nil, nil, nil, "reference to a hitbox's parent body"},
+	{"hitbox_parentfixture", nil, nil, nil, "reference to a hitbox's fixture"},
+
+	{"hitbox_name", "string", "hitbox", nil, "hitbox name"},
 
 	{"hitbox_enable", "boolean", false, nil,   "if false a hitbox will be treated as not existing"},
 

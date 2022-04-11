@@ -21,6 +21,7 @@
 require "props/bodyprops"
 require "hitbox"
 require "fixture"
+require "coarsecollision"
 require "physicsutils"
 require "set"
 
@@ -161,11 +162,11 @@ end
 -- adds a fixture to the body
 -- if activate is true then it is automatically activated
 function IrisBody:AddFixture(fixture, activate)
-	print("solid ", fixture.props.fixture_solid)
-
 	local selfprops = self.props
 	fixture.props.fixture_parent_x = PropLink(selfprops, "body_x")
 	fixture.props.fixture_parent_y = PropLink(selfprops, "body_y")
+	fixture.props.fixture_parent = self
+	fixture:SetFixtureHitboxesParent(self)
 
 	local f = self.__fixtures
 	f[#f+1] = fixture
@@ -258,26 +259,13 @@ end
 
 HandleBodyCollision_static_static       = nil
 HandleBodyCollision_static_dynamic      = nil
---[[HandleBodyCollision_dynamic_static      = function (bodya, bodyb, solidbodya, solidbodyb)
-	local bodyaprops = bodya.props
-	local x1,y1,w1,h1 = bodya:ComputeBoundingBoxLastFrame(solidbodya)
-	local x2,y2,w2,h2 = bodyb:ComputeBoundingBoxLastFrame(solidbodyb)
-	local xvel = bodyaprops.body_xvel
-	local yvel = bodyaprops.body_yvel
-
-	local collision, newxvel, newyvel = DynamicRectStaticRectCollisionFull(x1,y1,w1,h1, xvel, yvel,
-	                                                                       x2,y2,w2,h2)
-	if collision then
-		bodyaprops.body_xvel = newxvel
-		bodyaprops.body_yvel = newyvel
-	end
-end--]]
-HandleBodyCollision_dynamic_static      = function (bodya, bodyb, solidbodya, solidbodyb)
+HandleBodyCollision_dynamic_static      = function (bodya, bodyb)
 	local bodyaprops = bodya.props
 
 	local bodyahitboxes = bodya:ActiveHitboxes(true)
 	local bodybhitboxes = bodyb:ActiveHitboxes(true)
 
+	-- this is quadratic time, do something better
 	for _, hitboxa in ipairs(bodyahitboxes) do
 		local x1,y1,w1,h1 = hitboxa:Position()
 		for _, hitboxb in ipairs(bodybhitboxes) do
@@ -285,25 +273,21 @@ HandleBodyCollision_dynamic_static      = function (bodya, bodyb, solidbodya, so
 			local xvel = bodyaprops.body_xvel
 			local yvel = bodyaprops.body_yvel
 
-			--x1=x1-xvel
-			--y1=y1-yvel
-
-			--local collision, newxvel, newyvel = DynamicRectStaticRectCollisionFull(x1-xvel,y1-yvel,w1,h1, xvel, yvel,
 			local collision, newxvel, newyvel = DynamicRectStaticRectCollisionFull(x1,y1,w1,h1, xvel, yvel,
 																				   x2,y2,w2,h2)
 			if collision then
-				print("byeahbyeahbyeahbyeahbyeahbyeahbyeahbyeahbyeahbyeah")
 				bodyaprops.body_xvel = newxvel
 				bodyaprops.body_yvel = newyvel
 			end
-
-			print(x1,y1,w1,h1, xvel)
-			print("   ",x2,y2,w2,h2)
-
 		end
 	end
 end
-HandleBodyCollision_dynamic_dynamic     = nil
+HandleBodyCollision_dynamic_dynamic     = function (bodya, bodyb)
+	local bodyaprops = bodya.props
+
+	local bodyahitboxes = bodya:ActiveHitboxes(true)
+	local bodybhitboxes = bodyb:ActiveHitboxes(true)
+end
 HandleBodyCollision_kinematic_static    = nil
 HandleBodyCollision_static_kinematic    = nil
 HandleBodyCollision_kinematic_kinematic = nil
@@ -326,7 +310,7 @@ __BODY_TYPE_COLLISION_HANDLER__["kinematic"]["kinematic"] = HandleBodyCollision_
 testfixture = IrisFixture:new({fixture_name = "fixture1"})
 testfixture:NewHitbox({hitbox_x = 50, hitbox_y = 50, hitbox_w = 100, hitbox_h = 100 })
 testfixture:NewHitbox({hitbox_x = 0, hitbox_y = 00, hitbox_w = 100, hitbox_h = 100 })
-testbody = IrisBody:new({body_x = 240, body_y = 0, body_name = "body1", body_xvel=1})
+testbody = IrisBody:new({body_x = 190, body_y = 80, body_name = "body1", body_xvel=0})
 testfixture12 = IrisFixture:new({fixture_solid=false, fixture_name = "fixture12"})
 testfixture12.props.fixture_solid = false
 testfixture12:NewHitbox({hitbox_x = 165, hitbox_y = 165, hitbox_w = 100, hitbox_h = 100 })
@@ -335,7 +319,7 @@ testbody:AddFixture(testfixture12, true)
 
 testfixture2 = IrisFixture:new({fixture_name = "fixture2"})
 testfixture2:NewHitbox({hitbox_x = 0, hitbox_y = 0, hitbox_w = 100, hitbox_h = 100})
-testbody2 = IrisBody:new({body_x = 30, body_y = 30, body_name = "body2", body_xvel=3})
+testbody2 = IrisBody:new({body_x = 30, body_y = 30, body_name = "body2", body_xvel=1.5})
 testbody2:AddFixture(testfixture2, true)
 
 testfixture3 = IrisFixture:new({fixture_name = "fixture3"})

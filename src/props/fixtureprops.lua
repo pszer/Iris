@@ -16,6 +16,7 @@ IrisFixturePropPrototype = Props:prototype{
 
 	{"fixture_parent_x", "link", PropConst(0), nil, "link to a fixtures's body x to be treated as origin"},
 	{"fixture_parent_y", "link", PropConst(0), nil, "link to a fixtures's body y to be treated as origin"},
+	{"fixture_parent", nil, nil, nil, "reference to a fixtures body"},
 
 	{"fixture_solid", "boolean", true, nil, "if true a fixtures hitboxes are treated as solid"},
 
