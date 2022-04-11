@@ -26,7 +26,7 @@ function SortedAABB:new()
 end
 
 -- axis = "x" or "y"
-function SortedAABB:SortBodies(bodies, solid, axis)
+function SortedAABB:SortBodies(bodies, solid, axis, addvelocity)
 	local xaxismin = {}
 	local xaxismax = {}
 	local yaxismin = {}
@@ -37,6 +37,23 @@ function SortedAABB:SortBodies(bodies, solid, axis)
 	for i,b in ipairs(bodies) do
 		local x,y,w,h = b:ComputeBoundingBox(solid)
 		if x then
+			if addvelocity then
+				local xv = b.props.body_xvel
+				local yv = b.props.body_yvel
+				if xv < 0 then
+					x = x + xv
+					w = w - xv
+				else
+					w = w + xv
+				end
+
+				if yv < 0 then
+					y = y + yv
+					h = h - yv
+				else
+					h = h + yv
+				end
+			end
 			xaxismin[count] = x
 			yaxismin[count] = y
 			xaxismax[count] = x + w

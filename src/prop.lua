@@ -117,7 +117,7 @@ Props.__call = function (proto, init)
 
 	props.__index = function (p, key)
 		local v = rawget(p.__proptabledata, key)
-		if v then
+		if v ~= nil then
 			if type(v) == "function" then
 				return v()
 			else
@@ -127,6 +127,7 @@ Props.__call = function (proto, init)
 			if p.__proto[key] then
 				return p.__proto[key].default
 			else
+				error("key " .. tostring(key) .. "doesn't exist")
 				return nil
 			end
 		end

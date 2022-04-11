@@ -172,25 +172,10 @@ end
 -- returns false if no collision
 -- returns true, newxvel, newyvel, newdx, newdy if collision 
 function DynamicRectStaticRectCollisionFull(dx,dy,dw,dh, xvel, yvel, sx,sy,sw,sh)
-	--[[if xvel == 0 and yvel == 0 then
-		return false
-	end
-
-	local dwhalf, dhhalf = dw/2, dh/2
-	local rayx,rayy = dx+dwhalf, dy+dhhalf
-	local collision, contactx, contacty, normalx, normaly, time =
-		RayRectangleCollision(rayx,rayy,xvel,yvel, sx-dwhalf, sy-dhhalf, sw+dw, sh+dh)
-	if collision and time < 1.0 then
-		newxvel = xvel + normalx * math.abs(xvel) * (1 - time)
-		newyvel = yvel + normaly * math.abs(yvel) * (1 - time)
-		return true, newxvel, newyvel, contactx-dwhalf, contacty-dhhalf
-	else
-		return false
-	end--]]
 	local collision, contactx, contacty, normalx, normaly, time =
 		DynamicRectStaticRectCollision(dx,dy,dw,dh, xvel, yvel, sx,sy,sw,sh)
 	if collision then
-		return true, ResolveDynamicRectStaticRectCollision(dx,dy,dw,dh,xvel,yvel,contactx,contacty,normalx,normaly,time)
+		return true, ResolveDynamicRectStaticRectCollision(dw,dh,xvel,yvel,contactx,contacty,normalx,normaly,time)
 	else
 		return false
 	end
@@ -208,6 +193,26 @@ function DynamicRectStaticRectCollision(dx,dy,dw,dh, xvel, yvel, sx,sy,sw,sh)
 	local collision, contactx, contacty, normalx, normaly, time =
 		RayRectangleCollision(rayx,rayy,xvel,yvel, sx-dwhalf, sy-dhhalf, sw+dw, sh+dh)
 	if collision and time >= 0.0 and time < 1.0 then
+		return collision, contactx, contacty, normalx, normaly, time
+	else
+		return false
+	end
+end
+
+-- returns false if no collision
+-- returns true, contactx, contacty, normalx, normaly, time if collision happens
+-- "version" 1 of this function does not account for a rectangle that is in a rectangle
+-- version 2 does and should only be used for checking for collision but not in resolution
+function DynamicRectStaticRectCollision2(dx,dy,dw,dh, xvel, yvel, sx,sy,sw,sh)
+	if xvel == 0 and yvel == 0 then
+		return false
+	end
+
+	local dwhalf, dhhalf = dw/2, dh/2
+	local rayx,rayy = dx+dwhalf, dy+dhhalf
+	local collision, contactx, contacty, normalx, normaly, time =
+		RayRectangleCollision(rayx,rayy,xvel,yvel, sx-dwhalf, sy-dhhalf, sw+dw, sh+dh)
+	if collision and time < 1.0 then
 		return collision, contactx, contacty, normalx, normaly, time
 	else
 		return false
