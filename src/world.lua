@@ -124,18 +124,6 @@ end
 function IrisWorld:CollideBodies(bodies)
 	local bodies = bodies or self:CollectBodies()
 
-	for _,b in ipairs(bodies) do
-		local bprops = b.props
-		if bprops.body_yvel ~= 0 then
-			bprops.body_onfloor     = false
-			bprops.body_onceil      = false
-		end
-		if bprops.body_xvel ~= 0 then
-			bprops.body_onleftwall  = false
-			bprops.body_onrightwall = false
-		end
-	end
-
 	local sortedaabb = self.__sortedaabb
 	if sortedaabb == nil then
 		sortedaabb = SortedAABB:new()
@@ -150,6 +138,14 @@ function IrisWorld:CollideBodies(bodies)
 		end
 	end
 
+	for _,b in ipairs(bodies) do
+		local bprops = b.props
+		bprops.body_onfloor     = false
+		bprops.body_onceil      = false
+		bprops.body_onleftwall  = false
+		bprops.body_onrightwall = false
+	end
+
 	local possiblecollisions = sortedaabb:GetPossibleCollisions()
 
 	-- static collisions
@@ -157,8 +153,8 @@ function IrisWorld:CollideBodies(bodies)
 		local bodyaprops = bodya.props
 		--x1,y1,w1,h1 = bodya:ComputeBoundingBoxLastFrame(true)
 		x1,y1,w1,h1 = bodya:ComputeBoundingBox(true)
-		local xvel = bodyaprops.body_xvel + bodya.__xoffset
-		local yvel = bodyaprops.body_yvel + bodya.__yoffset
+		local xvel = bodyaprops.body_xvel
+		local yvel = bodyaprops.body_yvel
 		-- we first resolve dynamic collisions, then static collisions
 		local orderedcols = {}
 		for _,b in ipairs(v) do
@@ -181,13 +177,13 @@ function IrisWorld:CollideBodies(bodies)
 
 			local handler = __BODY_TYPE_COLLISION_HANDLER__[bodyatype][bodybtype]
 			if handler then
-				handler(bodya, bodyb)
+				local collided = handler(bodya, bodyb)
 			end
 		end
 	end
 
-	-- dynamic collisions
-	
+	-- we first resolve dynamic collisions, then static collisions
+	dynamiccols = {}
 	for bodya,v in pairs(possiblecollisions) do
 		local bodyaprops = bodya.props
 		--x1,y1,w1,h1 = bodya:ComputeBoundingBoxLastFrame(true)
@@ -195,7 +191,6 @@ function IrisWorld:CollideBodies(bodies)
 		local xvel = bodyaprops.body_xvel
 		local yvel = bodyaprops.body_yvel
 
-		-- we first resolve dynamic collisions, then static collisions
 		local orderedcols = {}
 		for _,b in ipairs(v) do
 			local bodybprops = b.props
@@ -221,10 +216,50 @@ function IrisWorld:CollideBodies(bodies)
 
 			local handler = __BODY_TYPE_COLLISION_HANDLER__[bodyatype][bodybtype]
 			if handler then
-				handler(bodya, bodyb)
+				if handler(bodya, bodyb) then
+					table.insert(dynamiccols, bodya)
+					table.insert(dynamiccols, bodyb)
+				end
 			end
 		end
 	end
+
+	-- recalculate static collisions on dynamic bodies that collided
+	for _,bodya in pairs(dynamiccols) do
+		local v = possiblecollisions[bodya]
+		local bodyaprops = bodya.props
+		--x1,y1,w1,h1 = bodya:ComputeBoundingBoxLastFrame(true)
+		x1,y1,w1,h1 = bodya:ComputeBoundingBox(true)
+		local xvel = bodyaprops.body_xvel
+		local yvel = bodyaprops.body_yvel
+		-- we first resolve dynamic collisions, then static collisions
+		local orderedcols = {}
+		for _,b in ipairs(v) do
+			local bodybprops = b.props
+			if bodybprops.body_type == "static" then
+				x2,y2,w2,h2 = b:ComputeBoundingBox(true)
+				local arecolliding, contactx, contacty, normalx, normaly, time =
+					DynamicRectStaticRectCollision2(x1,y1,w1,h1 , xvel,yvel, x2,y2,w2,h2)
+				if arecolliding then
+					table.insert(orderedcols, {b,contactx,contacty,normalx,normaly,time})
+				end
+			end
+		end
+
+		table.sort(orderedcols, function(a,b) return a[6]<b[6] end)
+		for _,c in ipairs(orderedcols) do
+			local bodyb = c[1]
+			local bodyatype = bodyaprops.body_type
+			local bodybtype = bodyb.props.body_type
+
+			local handler = __BODY_TYPE_COLLISION_HANDLER__[bodyatype][bodybtype]
+			if handler then
+				local collided = handler(bodya, bodyb)
+			end
+		end
+	end
+
+	-- dynamic collisions
 
 	--[[
 	for bodya,v in pairs(possiblecollisions) do
@@ -268,4 +303,4 @@ testworld:CollectBody(testbody2)
 testworld:CollectBody(testbody3)
 testworld:CollectBody(testbody4)
 testworld:CollectBody(testbody5)
-testworld:CollectBody(testbody6)
+--testworld:CollectBody(testbody6)

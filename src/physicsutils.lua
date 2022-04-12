@@ -326,11 +326,11 @@ function DynamicRectDynamicRectCollisionFull(dx,dy,dw,dh, dxv, dyv, sx,sy,sw,sh,
 	local collision, contactx, contacty, normalx, normaly, time, rayinrect, collisiontype =
 		DynamicRectDynamicRectCollision(dx,dy,dw,dh,dxv,dyv, sx,sy,sw,sh,sxv,syv)
 	if collision then
-		local newxvel1, newyvel1, xoffset1, yoffset1, newxvel2, newyvel2, onfloor, onleftwall, onrightwall, onceil
+		local newxvel1, newyvel1, newxvel2, newyvel2, onfloor, onleftwall, onrightwall, onceil
 		  = ResolveDynamicRectDynamicRectCollision(dxv,dyv,sxv,syv,contactx,contacty,normalx,normaly,time,rayinrect,
 		                                           mass1,mass2,bounce1,bounce2,friction1,friction2, collisiontype)
 		if newxvel1 then
-			return true, newxvel1, newyvel1, xoffset1, yoffset1, newxvel2, newyvel2, onfloor, onleftwall, onrightwall, onceil
+			return true, newxvel1, newyvel1, newxvel2, newyvel2, onfloor, onleftwall, onrightwall, onceil
 		else
 			return false
 		end
@@ -352,104 +352,23 @@ function DynamicRectDynamicRectCollision(dx,dy,dw,dh, dxvel, dyvel, sx,sy,sw,sh,
 	love.graphics.rectangle("line", sx-dwhalf+sxvel, sy-dhhalf+syvel, sw+dw, sh+dh)
 	love.graphics.line(rayx,rayy,rayx+dxvel*10,rayy+dyvel*10)
 	local collision, contactx, contacty, normalx, normaly, time, rayinrect =
-		--RayRectangleCollision(rayx,rayy,dxvel,dyvel, sx-dwhalf+sxvel, sy-dhhalf+syvel, sw+dw, sh+dh)
-		--RayRectangleCollision3(rayx,rayy,dxvel,dyvel, sx-dwhalf+sxvel, sy-dhhalf+syvel, sw+dw, sh+dh)
 		RayRectangleCollision3(rayx,rayy,dxvel,dyvel, sx-dwhalf+sxvel, sy-dhhalf+syvel, sw+dw, sh+dh)
-	--local collision2, contactx2, contacty2, normalx2, normaly2, time2, rayinrect2 =
-	--	RayRectangleCollision2(rayx,rayy,dxvel,dyvel, sx-dwhalf+sxvel, sy-dhhalf+syvel, sw+dw, sh+dh)
 
-	print("time1 time2", time, time2)
-	if collision and (rayinrect or (time >= 0.0 and time < 1.0)) then
-		print("bing bang wahoo")
-		if rayinrect then print("rayinrect!!!!!") end
-		return collision, contactx+sxvel, contacty+syvel, normalx, normaly, time, rayinrect
+	if collision and time >= 0.0 and time < 1.0 then
+		return collision, contactx, contacty, normalx, normaly, time, rayinrect, "1"
+	elseif rayinrect then
+		local collision, contactx, contacty, normalx, normaly, time, rayinrect =
+			RayRectangleCollision3(rayx,rayy,dxvel-sxvel,dyvel-syvel, sx-dwhalf, sy-dhhalf, sw+dw, sh+dh)
+		if collision and time >= 0.0 and time < 1.0 then
+			return collision, contactx, contacty, normalx, normaly, time, rayinrect, "2"
+		end
+		--else
+		--	return collision, contactx, contacty, normalx, normaly, time, rayinrect, "3"
+		--end
+		return false
 	else
 		return false
 	end
-
-	--[[ best so far
-	if dxvel == 0 and dyvel == 0 and sxvel == 0 and syvel == 0 then
-		return false
-	end
-
-	local dwhalf, dhhalf = dw/2, dh/2
-	local rayx,rayy = dx+dwhalf, dy+dhhalf
-	love.graphics.circle("fill",rayx,rayy,4)
-	love.graphics.rectangle("line", sx-dwhalf+sxvel, sy-dhhalf+syvel, sw+dw, sh+dh)
-	love.graphics.line(rayx,rayy,rayx+dxvel*10,rayy+dyvel*10)
-	local collision, contactx, contacty, normalx, normaly, time, rayinrect =
-		--RayRectangleCollision(rayx,rayy,dxvel,dyvel, sx-dwhalf+sxvel, sy-dhhalf+syvel, sw+dw, sh+dh)
-		--RayRectangleCollision3(rayx,rayy,dxvel,dyvel, sx-dwhalf+sxvel, sy-dhhalf+syvel, sw+dw, sh+dh)
-		RayRectangleCollision3(rayx,rayy,dxvel,dyvel, sx-dwhalf+sxvel, sy-dhhalf+syvel, sw+dw, sh+dh)
-	local collision2, contactx2, contacty2, normalx2, normaly2, time2, rayinrect2 =
-		RayRectangleCollision2(rayx,rayy,dxvel,dyvel, sx-dwhalf+sxvel, sy-dhhalf+syvel, sw+dw, sh+dh)
-	
-	print("time1 time2", time, time2)
-	if not rayinrect then
-		if collision and time >= 0.0 and time < 1.0 then
-			return collision, contactx, contacty, normalx, normaly, time, rayinrect
-		else
-			return false
-		end
-	end
-
-	if collision and (rayinrect or (time >= 0.0 and time < 1.0)) and (not collision2 or (math.abs(time)<math.abs(time2)))then
-		if collision and (rayinrect or (time >= 0.0 and time < 1.0)) then
-			if rayinrect then print("rayinrect!!!!!") end
-			return collision, contactx, contacty, normalx, normaly, time, rayinrect
-		else
-			return false
-		end
-	elseif collision2 and (rayinrect2 or (time2 >= 0.0 and time2 < 1.0)) and (not collision or (math.abs(time2)<math.abs(time)))then
-		if collision2 and (rayinrect2 or (time2 >= 0.0 and time2 < 1.0)) then
-			print("BRRRUUUH")
-			if rayinrect2 then print("rayinrect!!!!! but 2") end
-			print("the normals", normaly, normaly2)
-			return collision2, contactx2, contacty2, normalx2, normaly2, time2, rayinrect2
-		else
-			return false
-		end
-	end --]]
-
-	if dxvel == 0 and dyvel == 0 and sxvel == 0 and syvel == 0 then
-		return false
-	end
-
-	local dwhalf, dhhalf = dw/2, dh/2
-	local rayx,rayy = dx+dwhalf+dxvel, dy+dhhalf+dyvel
-	love.graphics.circle("fill",rayx,rayy,4)
-	love.graphics.rectangle("line", sx-dwhalf+sxvel, sy-dhhalf+syvel, sw+dw, sh+dh)
-	love.graphics.line(rayx,rayy,rayx+dxvel*10,rayy+dyvel*10)
-	local collision, contactx, contacty, normalx, normaly, time, rayinrect =
-		RayRectangleCollision3(rayx,rayy,-sxvel,-syvel, sx-dwhalf, sy-dhhalf, sw+dw, sh+dh)
-	local collision2, contactx2, contacty2, normalx2, normaly2, time2, rayinrect2 =
-		RayRectangleCollision2(rayx,rayy,-sxvel,-syvel, sx-dwhalf, sy-dhhalf, sw+dw, sh+dh)
-
-	--if collision and (rayinrect or (time >= 0.0 and time < 1.0)) then
-	--	if rayinrect then print("rayinrect!!!!!") end
-	--	return collision, contactx+sxvel, contacty+syvel, normalx, normaly, time, rayinrect
-	--else
-	--	return false
-	--end
-	--[[
-	print("time1 time2", time, time2, normalx, normaly, normalx2, normaly2)
-	if collision and (rayinrect or (time >= 0.0 and time < 1.0)) and (not collision2 or (math.abs(time)<=math.abs(time2)))then
-		if collision and (rayinrect or (time >= 0.0 and time < 1.0)) then
-			if rayinrect then print("rayinrect!!!!!") end
-			return collision, contactx, contacty, normalx, normaly, time, rayinrect, "pushout"
-		else
-			return false
-		end
-	elseif collision2 and (rayinrect2 or (time2 >= 0.0 and time2 < 1.0)) and (not collision or (math.abs(time2)<math.abs(time)))then
-		if collision2 and (rayinrect2 or (time2 >= 0.0 and time2 < 1.0)) then
-			print("BRRRUUUH")
-			if rayinrect2 then print("rayinrect!!!!! but 2") end
-			print("the normals", normaly, normaly2)
-			return collision2, contactx2, contacty2, normalx2, normaly2, time2, rayinrect2, "pushin"
-		else
-			return false
-		end
-	end --]]
 end
 
 function DynamicRectDynamicRectCollision2(dx,dy,dw,dh, dxvel, dyvel, sx,sy,sw,sh, sxvel, syvel)
@@ -462,125 +381,14 @@ function DynamicRectDynamicRectCollision2(dx,dy,dw,dh, dxvel, dyvel, sx,sy,sw,sh
 	local collision, contactx, contacty, normalx, normaly, time, rayinrect =
 		RayRectangleCollision2(rayx,rayy,dxvel,dyvel, sx-dwhalf+sxvel, sy-dhhalf+syvel, sw+dw, sh+dh)
 	if collision and (rayinrect or (time >= 0.0 and time < 1.0)) then
-		if rayinrect then print("rayinrect!!!!!!!!!!!!!!!!") end
 		return collision, contactx, contacty, normalx, normaly, time, rayinrect
 	else
 		return false
 	end
 end
 
--- returns newxvel1, newyvel1, xpush, ypush, newxvel2, newyvel2, onfloor, onleftwall, onrightwall, onceil
---[[
 function ResolveDynamicRectDynamicRectCollision(xvel1, yvel1, xvel2, yvel2, contactx, contacty, normalx, normaly, time, rayinrect,
  mass1, mass2, bounce1, bounce2, friction1, friction2, collisiontype)
-		if rayinrect then print("yo rayinrect") end
-
-		-- relative velocities
-		local rxv, ryv = xvel1-xvel2, yvel1-yvel2
-		-- penetration speed
-		local ps = rxv * normalx + ryv * normaly
-		--if ps > 0 then
-		--	return false
-		--end
-
-		-- penetration components
-		local px,py = normalx*ps, normaly*ps
-
-		-- tangent components
-		local tx,ty = rxv-px, ryv-py
-
-		local friction = 0 + math.min(friction1,friction2)
-
-		-- we multiply by px,py later
-		local xmoment1 = mass1 
-		local ymoment1 = mass1
-		local xmoment2 = mass2
-		local ymoment2 = mass2
-		local totalmass = mass1+mass2
-
-		local impulsex1 = xmoment1/totalmass
-		local impulsey1 = ymoment1/totalmass
-		local impulsex2 = xmoment2/totalmass
-		local impulsey2 = ymoment2/totalmass
-		local ISNAN = ISNAN
-
-		if ISNAN(impulsex1) then impulsex1 = 1 end
-		if ISNAN(impulsex2) then impulsex2 = 1 end
-		if ISNAN(impulsey1) then impulsey1 = 1 end
-		if ISNAN(impulsey2) then impulsey2 = 1 end
-
-		--print(mass1, mass2, impulsex1, impulsex2, impulsey1, impulsey2, bounce1)
-
-		local newxvel1, newyvel1 = xvel1, yvel1
-		local newxvel2, newyvel2 = xvel2, yvel2
-		local xoffset, yoffset
-		local xpush, ypush = 0,0
-		if not rayinrect then
-			print("BOY")
-			xoffset = normalx * math.abs(xvel2) * (1 - time)
-			yoffset = normaly * math.abs(yvel2) * (1 - time)
-			print("offset", xoffset,yoffset, yvel1, yvel2, "yvel2*time", yvel2 * time, "yvel2*(1-time)", yvel2 * (1-time))
-			print("yvel1*time", yvel1 * time, "yvel1*(1-time)", yvel1 * (1-time))
-		else
-			print("rayinrect!", normalx, normaly, time)
-			love.graphics.circle("fill",contactx,contacty,3)
-			xoffset = normalx * math.abs(xvel1)-- * math.abs(time)
-			--yoffset = normaly * math.abs(yvel1) * math.abs(time) + yvel2 - yvel1
-			--yoffset = normaly * math.abs(yvel1)-- * math.abs(time) +
-			--yoffset = normaly * math.abs(yvel1) * math.abs(1) + yvel2
-			--yoffset = normaly * (math.abs(yvel1) + yvel1*math.abs(time)) + yvel2
-			--yoffset = normaly * (yvel1 + math.abs(yvel1*time)) best so far
-			if collisiontype == "pushout" then
-				print("pushout")
-				--xoffset = normalx * math.abs(xvel2 * time)
-				--yoffset = normaly * math.abs(yvel2 * time)
-				--xoffset = normalx * math.abs(xvel2 * time)
-				--yoffset = normaly * (math.abs(yvel2 * time) + math.abs(yvel2))
-				--xoffset = normalx * math.abs(xvel2) - xvel1
-				--yoffset = normaly * math.abs(yvel2) - yvel1
-				xoffset = normalx * math.abs(xvel2) * -time
-				yoffset = normaly * math.abs(yvel2) * -time
-				--xpush = normalx * math.abs(xvel2)*time
-				--ypush = normaly * math.abs(yvel2)*time
-				--xoffset = normalx * math.abs(xvel2)*(1-time) - xpush
-				--yoffset = normaly * math.abs(yvel2)*(1-time) - ypush
-			elseif collisiontype == "pushin" then
-				print("pushin")
-				xoffset = normaly * math.abs(xvel2 * (1 - time))
-				yoffset = normaly * math.abs(yvel2 * (1 - time))
-			end
-
-			print("offset", xoffset,yoffset, xvel1, yvel1, xvel2, yvel2, "xvel2*time", xvel2 * time, "xvel2*(1-time)", xvel2 * (1-time))
-			print("xpush", xpush, "ypush", ypush)
-			print("xvel1*time", yvel1 * time, "xvel1*(1-time)", xvel1 * (1-time))
-			--xoffset = 0
-			--yoffset = 0
-		end
-
-		if mass2 == 1/0 then
-			newxvel1 = xvel1 + xoffset-- + math.abs(xvel2) * normalx
-			newyvel1 = yvel1 + yoffset-- + math.abs(yvel2) * normaly
-			--newxvel1 = xvel1 + xoffset + math.abs(xvel2) * normalx
-			--newyvel1 = yvel1 + yoffset + math.abs(yvel2) * normaly
-			--xoffset = 0
-			--yoffset = 0
-			newxvel2 = xvel2
-			newyvel2 = yvel2
-		else
-			newxvel1 = xvel1 - px*bounce1*(1 - impulsex1) + tx*friction*(1-impulsex1)
-			newyvel1 = yvel1 - py*bounce1*(1 - impulsey1) + ty*friction*(1-impulsey1)
-			newxvel2 = xvel2 + px*bounce2*(1 - impulsex2) - tx*friction*(1-impulsex2)
-			newyvel2 = yvel2 + py*bounce2*(1 - impulsey2) - tx*friction*(1-impulsey2)
-		end
-
-		return newxvel1, newyvel1, xpush, ypush, newxvel2, newyvel2,
-		       normaly==-1, normalx==1, normalx==-1, normaly==1
-end--]]
-
-function ResolveDynamicRectDynamicRectCollision(xvel1, yvel1, xvel2, yvel2, contactx, contacty, normalx, normaly, time, rayinrect,
- mass1, mass2, bounce1, bounce2, friction1, friction2, collisiontype)
-		if rayinrect then print("yo rayinrect") end
-
 		-- relative velocities
 		local rxv, ryv = xvel1-xvel2, yvel1-yvel2
 		-- penetration speed
@@ -621,25 +429,25 @@ function ResolveDynamicRectDynamicRectCollision(xvel1, yvel1, xvel2, yvel2, cont
 		local newxvel2, newyvel2 = xvel2, yvel2
 		local xoffset, yoffset = 0,0
 		local xpush, ypush = 0,0
-		if not rayinrect then
-			print("BOY", normalx, normaly)
+		if not rayinrect and collisiontype == "1" then
+			--print("BOY", normalx, normaly)
 			xoffset = normalx * math.abs(xvel1) * (1 - time)
 			yoffset = normaly * math.abs(yvel1) * (1 - time)
-			print("offset", xoffset,yoffset, yvel1, yvel2, "yvel2*time", yvel2 * time, "yvel2*(1-time)", yvel2 * (1-time))
-			print("yvel1*time", yvel1 * time, "yvel1*(1-time)", yvel1 * (1-time))
-		else
-			print("in the rect", normalx, normaly)
-			xoffset = normalx * math.abs(xvel1) * (1 - time)
-			yoffset = normaly * math.abs(yvel1) * (1 - time)
-			--xoffset = 0
-			--yoffset = 0 
-			print("offset", xoffset,yoffset, yvel1, yvel2, "yvel2*time", yvel2 * time, "yvel2*(1-time)", yvel2 * (1-time))
-			print("yvel1*time", yvel1 * time, "yvel1*(1-time)", yvel1 * (1-time))
-			
+			--print("offset", xoffset,yoffset, yvel1, yvel2, "yvel2*time", yvel2 * time, "yvel2*(1-time)", yvel2 * (1-time))
+			--print("yvel1*time", yvel1 * time, "yvel1*(1-time)", yvel1 * (1-time))
+		elseif collisiontype == "2" then
+			--print("in the rect 2", normalx, normaly)
+			xoffset = normalx * math.abs(xvel1 - xvel2) * (1 - time)
+			yoffset = normaly * math.abs(yvel1 - yvel2) * (1 - time)
+			--print("offset", xoffset,yoffset, yvel1, yvel2, "yvel2*time", yvel2 * time, "yvel2*(1-time)", yvel2 * (1-time))
+			--print("yvel1*time", yvel1 * time, "yvel1*(1-time)", yvel1 * (1-time))
+		elseif collisiontype == "3" then
+			--print("in the rect 3", normalx, normaly)
+			--print("offset", xoffset,yoffset, yvel1, yvel2, "yvel2*time", yvel2 * time, "yvel2*(1-time)", yvel2 * (1-time))
+			--print("yvel1*time", yvel1 * time, "yvel1*(1-time)", yvel1 * (1-time))
 		end
 
 		if mass2 == 1/0 then
-			print("good")
 			newxvel1 = xvel1 + xoffset
 			newyvel1 = yvel1 + yoffset
 			newxvel2 = xvel2
@@ -651,6 +459,6 @@ function ResolveDynamicRectDynamicRectCollision(xvel1, yvel1, xvel2, yvel2, cont
 			newyvel2 = yvel2 + py*bounce2*(1 - impulsey2) - tx*friction*(1-impulsey2)
 		end
 
-		return newxvel1, newyvel1, xpush, ypush, newxvel2, newyvel2,
+		return newxvel1, newyvel1, newxvel2, newyvel2,
 		       normaly==-1, normalx==1, normalx==-1, normaly==1
 end

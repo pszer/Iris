@@ -26,7 +26,7 @@ function love.draw()
 	end
 	if QueryScancode("up", CONTROL_LOCK.INGAME) then
 		if testbody3.props.body_onfloor then
-			testbody3.props.body_yvel = -8
+			testbody3.props.body_yvel = -15
 		end
 	end
 	if QueryScancode("down", CONTROL_LOCK.INGAME) then
@@ -35,33 +35,29 @@ function love.draw()
 
 
 	if elevatorgoup then
-		testbody2.props.body_yvel = -1
+		testbody2.props.body_yvel = -4
 	else
-		testbody2.props.body_yvel = 1
+		testbody2.props.body_yvel = 4
 	end
 
-	if testbody2.props.body_y < 200 then
-		testbody2.props.body_y = 200
+	if testbody2.props.body_y < 200 and elevatorgoup then
 		elevatorgoup = false
-		--testbody2.props.body_yvel = -0
-	elseif testbody2.props.body_y > 500 then
-		testbody2.props.body_y = 500
+	elseif testbody2.props.body_y > 500 and not elevatorgoup then
 		elevatorgoup = true
-		--testbody2.props.body_yvel = -0
 	end
 
-	print("++++")
+	--[[print("++++")
 	print(testbody2.props.body_x, testbody2.props.body_y, testbody2.props.body_xvel, testbody2.props.body_yvel)
 	print(testbody3.props.body_x, testbody3.props.body_y, testbody3.props.body_xvel, testbody3.props.body_yvel)
-	print("++++")
+	print("++++")--]]
 
 	local bodies = testworld:CollectBodies()
 	testworld:CollideBodies(bodies, true)
 
-	print("----")
+	--[[print("----")
 	print(testbody2.props.body_x, testbody2.props.body_y, testbody2.props.body_xvel, testbody2.props.body_yvel)
 	print(testbody3.props.body_x, testbody3.props.body_y, testbody3.props.body_xvel, testbody3.props.body_yvel)
-	print("----")
+	print("----")--]]
 
 	testworld:UpdateBodies(bodies)
 
