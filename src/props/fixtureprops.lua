@@ -20,8 +20,4 @@ IrisFixturePropPrototype = Props:prototype{
 
 	{"fixture_solid", "boolean", true, nil, "if true a fixtures hitboxes are treated as solid"},
 
-	{"fixture_onfloor", "boolean", false, nil, "if true a fixtures hitboxes are a floor"},
-	{"fixture_onceil", "boolean", false, nil, "if true a fixtures hitboxes are touching a ceiling"},
-	{"fixture_onleftwall", "boolean", false, nil, "if true a fixtures hitboxes are touching a left wall"},
-	{"fixture_onrightwall", "boolean", false, nil, "if true a fixtures hitboxes are touching a right wall"}
 }

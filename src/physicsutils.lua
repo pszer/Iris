@@ -51,6 +51,13 @@ function RectangleCollision(ax,ay,aw,ah, bx,by,bw,bh)
 		   by < ay+ah
 end
 
+function PointRectangleCollision(a,b, x,y,w,h)
+	return x < a and
+	       y < b and
+		   x+w > a and
+		   y+h > b
+end
+
 local INF = 1/0
 local INFN = -1/0
 local NAN = 0/0
@@ -89,8 +96,8 @@ function RayRectangleCollision(rx,ry, dx,dy, x,y,w,h)
 	if tnearx > tfary or tneary > tfarx then return false, nil, nil, normalx, normaly, 0 end
 
 	-- smallest parameter of t will be the first contact
-	thitnear = math.max(tnearx, tneary)
-	thitfar = math.min(tfarx, tfary)
+	local thitnear = math.max(tnearx, tneary)
+	local thitfar = math.min(tfarx, tfary)
 
 	-- if ray points away from object then reject collision
 	if thitfar <= 0 then return false end
@@ -116,13 +123,153 @@ function RayRectangleCollision(rx,ry, dx,dy, x,y,w,h)
 	return true, contactx, contacty, normalx, normaly, thitnear
 end
 
+-- this version of the RayRectangleCollision function can handle
+-- rays that origin within the rectangle
+-- returns true/false, contactx, contacty, normalx, normaly, time, ray_originates_from_rectangle
+function RayRectangleCollision2(rx,ry, dx,dy, x,y,w,h)
+	local is_ray_origin_within_rectangle = PointRectangleCollision(rx,ry,x,y,w,h)
+
+	local ISNAN = ISNAN -- cache ISNAN
+
+	local contactx, contacty
+	local normalx, normaly = 0,0
+
+	local invdirx = 1.0 / dx
+	local invdiry = 1.0 / dy
+
+	-- calculate intersection t with rectangles bounding axes
+	local tnearx = (x-rx) * invdirx
+	local tneary = (y-ry) * invdiry
+	local tfarx  = (x+w-rx) * invdirx
+	local tfary  = (y+h-ry) * invdiry
+
+	if ISNAN(tfary) or ISNAN(tfarx) then return false, nil, nil, normalx, normaly, 0, is_ray_origin_within_rectangle end
+	if ISNAN(tneary) or ISNAN(tnearx) then return false, nil, nil, normalx, normaly, 0, is_ray_origin_within_rectangle end
+
+	-- sort distances so that near < far
+	if tnearx > tfarx then tnearx, tfarx = tfarx, tnearx end
+	if tneary > tfary then tneary, tfary = tfary, tneary end
+
+	-- reject if no intersection
+	if not is_ray_origin_within_rectangle then
+		if tnearx > tfary or tneary > tfarx then return false, nil, nil, normalx, normaly, 0, is_ray_origin_within_rectangle end
+	end
+
+	-- smallest parameter of t will be the first contact
+	local thitnear = math.max(tnearx, tneary)
+	local thitfar = math.min(tfarx, tfary)
+
+	-- for rays originating in the rectangle the order
+	-- is swapped
+	if is_ray_origin_within_rectangle then
+		thitnear, thitfar = thitfar, thitnear
+	end
+
+	-- if ray points away from object then reject collision
+	if not is_ray_origin_within_rectangle and thitfar <= 0 then return false end
+
+	contactx = rx + dx * thitnear
+	contacty = ry + dy * thitnear
+
+	-- calculate normal vector at contact point
+	if not is_ray_origin_within_rectangle then
+		if tnearx > tneary then
+			if invdirx < 0 then
+				normalx, normaly = 1, 0
+			else
+				normalx, normaly = -1, 0
+			end
+		else
+			if invdiry < 0 then
+				normalx, normaly = 0, 1
+			else
+				normalx, normaly = 0, -1
+			end
+		end
+	else
+		if tfarx < tfary then
+			if invdirx > 0 then
+				normalx, normaly = 1, 0
+			else
+				normalx, normaly = -1, 0
+			end
+		else
+			if invdiry > 0 then
+				normalx, normaly = 0, 1
+			else
+				normalx, normaly = 0, -1
+			end
+		end
+
+	end
+
+	return true, contactx, contacty, normalx, normaly, thitnear, is_ray_origin_within_rectangle
+end
+
+function RayRectangleCollision3(rx,ry, dx,dy, x,y,w,h)
+	local is_ray_origin_within_rectangle = PointRectangleCollision(rx,ry,x,y,w,h)
+
+	local ISNAN = ISNAN -- cache ISNAN
+
+	local contactx, contacty
+	local normalx, normaly = 0,0
+
+	local invdirx = 1.0 / dx
+	local invdiry = 1.0 / dy
+
+	-- calculate intersection t with rectangles bounding axes
+	local tnearx = (x-rx) * invdirx
+	local tneary = (y-ry) * invdiry
+	local tfarx  = (x+w-rx) * invdirx
+	local tfary  = (y+h-ry) * invdiry
+
+	if ISNAN(tfary) or ISNAN(tfarx) then return false, nil, nil, normalx, normaly, 0, is_ray_origin_within_rectangle end
+	if ISNAN(tneary) or ISNAN(tnearx) then return false, nil, nil, normalx, normaly, 0, is_ray_origin_within_rectangle end
+
+	-- sort distances so that near < far
+	if tnearx > tfarx then tnearx, tfarx = tfarx, tnearx end
+	if tneary > tfary then tneary, tfary = tfary, tneary end
+
+	-- reject if no intersection
+	if not is_ray_origin_within_rectangle then
+		if tnearx > tfary or tneary > tfarx then return false, nil, nil, normalx, normaly, 0, is_ray_origin_within_rectangle end
+	end
+
+	-- smallest parameter of t will be the first contact
+	local thitnear = math.max(tnearx, tneary)
+	local thitfar = math.min(tfarx, tfary)
+
+	-- if ray points away from object then reject collision
+	if not is_ray_origin_within_rectangle and thitfar <= 0 then return false end
+
+	contactx = rx + dx * thitnear
+	contacty = ry + dy * thitnear
+
+	-- calculate normal vector at contact point
+	if tnearx > tneary then
+		if invdirx < 0 then
+			normalx, normaly = 1, 0
+		else
+			normalx, normaly = -1, 0
+		end
+	else
+		if invdiry < 0 then
+			normalx, normaly = 0, 1
+		else
+			normalx, normaly = 0, -1
+		end
+	end
+
+	return true, contactx, contacty, normalx, normaly, thitnear, is_ray_origin_within_rectangle
+end
+
 -- returns false if no collision
 -- returns true, newxvel, newyvel, newdx, newdy if collision 
 function DynamicRectStaticRectCollisionFull(dx,dy,dw,dh, xvel, yvel, sx,sy,sw,sh)
 	local collision, contactx, contacty, normalx, normaly, time =
 		DynamicRectStaticRectCollision(dx,dy,dw,dh, xvel, yvel, sx,sy,sw,sh)
 	if collision then
-		return true, ResolveDynamicRectStaticRectCollision(dw,dh,xvel,yvel,contactx,contacty,normalx,normaly,time)
+		return true, ResolveDynamicRectStaticRectCollision(xvel,yvel,contactx,contacty,normalx,normaly,time)
 	else
 		return false
 	end
@@ -137,9 +284,9 @@ function DynamicRectStaticRectCollision(dx,dy,dw,dh, xvel, yvel, sx,sy,sw,sh)
 
 	local dwhalf, dhhalf = dw/2, dh/2
 	local rayx,rayy = dx+dwhalf, dy+dhhalf
-	local collision, contactx, contacty, normalx, normaly, time =
-		RayRectangleCollision(rayx,rayy,xvel,yvel, sx-dwhalf, sy-dhhalf, sw+dw, sh+dh)
-	if collision and time >= 0.0 and time < 1.0 then
+	local collision, contactx, contacty, normalx, normaly, time, rayinrect =
+		RayRectangleCollision2(rayx,rayy,xvel,yvel, sx-dwhalf, sy-dhhalf, sw+dw, sh+dh)
+	if collision and time >= 0 and time < 1.0 then
 		return collision, contactx, contacty, normalx, normaly, time
 	else
 		return false
@@ -157,7 +304,7 @@ function DynamicRectStaticRectCollision2(dx,dy,dw,dh, xvel, yvel, sx,sy,sw,sh)
 
 	local dwhalf, dhhalf = dw/2, dh/2
 	local rayx,rayy = dx+dwhalf, dy+dhhalf
-	local collision, contactx, contacty, normalx, normaly, time =
+	local collision, contactx, contacty, normalx, normaly, time, rayinrect =
 		RayRectangleCollision(rayx,rayy,xvel,yvel, sx-dwhalf, sy-dhhalf, sw+dw, sh+dh)
 	if collision and time < 1.0 then
 		return collision, contactx, contacty, normalx, normaly, time
@@ -166,9 +313,240 @@ function DynamicRectStaticRectCollision2(dx,dy,dw,dh, xvel, yvel, sx,sy,sw,sh)
 	end
 end
 
--- returns newxvel, newyvel
-function ResolveDynamicRectStaticRectCollision(w,h, xvel, yvel, contactx, contacty, normalx, normaly, time)
+-- returns newxvel, newyvel, onfloor, onleftwall, onrightwall, onceil
+function ResolveDynamicRectStaticRectCollision(xvel, yvel, contactx, contacty, normalx, normaly, time)
 		newxvel = xvel + normalx * math.abs(xvel) * (1 - time)
 		newyvel = yvel + normaly * math.abs(yvel) * (1 - time)
-		return newxvel, newyvel, contactx-w/2, contacty-h/2
+		return newxvel, newyvel, normaly==-1, normalx==1, normalx==-1, normaly==1
+end
+
+-- returns false if no collision
+-- returns true, newxvel1, newyxvel1, xoffset1, yoffset1, newxvel2, newyxvel2 if collision
+function DynamicRectDynamicRectCollisionFull(dx,dy,dw,dh, dxv, dyv, sx,sy,sw,sh, sxv, syv, mass1,mass2, bounce1,bounce2, friction1,friction2)
+	local collision, contactx, contacty, normalx, normaly, time, rayinrect =
+		DynamicRectDynamicRectCollision(dx,dy,dw,dh,dxv,dyv, sx,sy,sw,sh,sxv,syv)
+	if collision then
+		local newxvel1, newyvel1, xoffset1, yoffset1, newxvel2, newyvel2, onfloor, onleftwall, onrightwall, onceil
+		  = ResolveDynamicRectDynamicRectCollision(dxv,dyv,sxv,syv,contactx,contacty,normalx,normaly,time,rayinrect,
+		                                           mass1,mass2,bounce1,bounce2,friction1,friction2)
+		if newxvel1 then
+			return true, newxvel1, newyvel1, xoffset1, yoffset1, newxvel2, newyvel2, onfloor, onleftwall, onrightwall, onceil
+		else
+			return false
+		end
+	else
+		return false
+	end
+end
+
+-- returns false if no collision
+-- returns true, contactx, contacty, normalx, normaly, time if collision happens
+function DynamicRectDynamicRectCollision(dx,dy,dw,dh, dxvel, dyvel, sx,sy,sw,sh, sxvel, syvel)
+	--[[if dxvel == 0 and dyvel == 0 and sxvel == 0 and syvel == 0 then
+		return false
+	end
+
+	local dwhalf, dhhalf = dw/2, dh/2
+	local rayx,rayy = dx+dwhalf, dy+dhhalf
+	love.graphics.circle("fill",rayx,rayy,4)
+	love.graphics.rectangle("line", sx-dwhalf+sxvel, sy-dhhalf+syvel, sw+dw, sh+dh)
+	love.graphics.line(rayx,rayy,rayx+dxvel*10,rayy+dyvel*10)
+	local collision, contactx, contacty, normalx, normaly, time, rayinrect =
+		--RayRectangleCollision(rayx,rayy,dxvel,dyvel, sx-dwhalf+sxvel, sy-dhhalf+syvel, sw+dw, sh+dh)
+		--RayRectangleCollision3(rayx,rayy,dxvel,dyvel, sx-dwhalf+sxvel, sy-dhhalf+syvel, sw+dw, sh+dh)
+		RayRectangleCollision3(rayx,rayy,dxvel,dyvel, sx-dwhalf+sxvel, sy-dhhalf+syvel, sw+dw, sh+dh)
+	local collision2, contactx2, contacty2, normalx2, normaly2, time2, rayinrect2 =
+		RayRectangleCollision2(rayx,rayy,dxvel,dyvel, sx-dwhalf+sxvel, sy-dhhalf+syvel, sw+dw, sh+dh)
+
+	print("time1 time2", time, time2)
+	if collision and (rayinrect or (time >= 0.0 and time < 1.0)) then
+		if rayinrect then print("rayinrect!!!!!") end
+		return collision, contactx+sxvel, contacty+syvel, normalx, normaly, time, rayinrect
+	else
+		return false
+	end--]]
+
+	--[[ best so far
+	if dxvel == 0 and dyvel == 0 and sxvel == 0 and syvel == 0 then
+		return false
+	end
+
+	local dwhalf, dhhalf = dw/2, dh/2
+	local rayx,rayy = dx+dwhalf, dy+dhhalf
+	love.graphics.circle("fill",rayx,rayy,4)
+	love.graphics.rectangle("line", sx-dwhalf+sxvel, sy-dhhalf+syvel, sw+dw, sh+dh)
+	love.graphics.line(rayx,rayy,rayx+dxvel*10,rayy+dyvel*10)
+	local collision, contactx, contacty, normalx, normaly, time, rayinrect =
+		--RayRectangleCollision(rayx,rayy,dxvel,dyvel, sx-dwhalf+sxvel, sy-dhhalf+syvel, sw+dw, sh+dh)
+		--RayRectangleCollision3(rayx,rayy,dxvel,dyvel, sx-dwhalf+sxvel, sy-dhhalf+syvel, sw+dw, sh+dh)
+		RayRectangleCollision3(rayx,rayy,dxvel,dyvel, sx-dwhalf+sxvel, sy-dhhalf+syvel, sw+dw, sh+dh)
+	local collision2, contactx2, contacty2, normalx2, normaly2, time2, rayinrect2 =
+		RayRectangleCollision2(rayx,rayy,dxvel,dyvel, sx-dwhalf+sxvel, sy-dhhalf+syvel, sw+dw, sh+dh)
+	
+	print("time1 time2", time, time2)
+	if not rayinrect then
+		if collision and time >= 0.0 and time < 1.0 then
+			return collision, contactx, contacty, normalx, normaly, time, rayinrect
+		else
+			return false
+		end
+	end
+
+	if collision and (rayinrect or (time >= 0.0 and time < 1.0)) and (not collision2 or (math.abs(time)<math.abs(time2)))then
+		if collision and (rayinrect or (time >= 0.0 and time < 1.0)) then
+			if rayinrect then print("rayinrect!!!!!") end
+			return collision, contactx, contacty, normalx, normaly, time, rayinrect
+		else
+			return false
+		end
+	elseif collision2 and (rayinrect2 or (time2 >= 0.0 and time2 < 1.0)) and (not collision or (math.abs(time2)<math.abs(time)))then
+		if collision2 and (rayinrect2 or (time2 >= 0.0 and time2 < 1.0)) then
+			print("BRRRUUUH")
+			if rayinrect2 then print("rayinrect!!!!! but 2") end
+			print("the normals", normaly, normaly2)
+			return collision2, contactx2, contacty2, normalx2, normaly2, time2, rayinrect2
+		else
+			return false
+		end
+	end --]]
+
+	if dxvel == 0 and dyvel == 0 and sxvel == 0 and syvel == 0 then
+		return false
+	end
+
+	local dwhalf, dhhalf = dw/2, dh/2
+	local rayx,rayy = dx+dwhalf+dxvel, dy+dhhalf+dyvel
+	love.graphics.circle("fill",rayx,rayy,4)
+	love.graphics.rectangle("line", sx-dwhalf+sxvel, sy-dhhalf+syvel, sw+dw, sh+dh)
+	love.graphics.line(rayx,rayy,rayx+dxvel*10,rayy+dyvel*10)
+	local collision, contactx, contacty, normalx, normaly, time, rayinrect =
+		RayRectangleCollision3(rayx,rayy,-sxvel,-syvel, sx-dwhalf, sy-dhhalf, sw+dw, sh+dh)
+	local collision2, contactx2, contacty2, normalx2, normaly2, time2, rayinrect2 =
+		RayRectangleCollision2(rayx,rayy,-sxvel,-syvel, sx-dwhalf, sy-dhhalf, sw+dw, sh+dh)
+
+	--if collision and (rayinrect or (time >= 0.0 and time < 1.0)) then
+	--	if rayinrect then print("rayinrect!!!!!") end
+	--	return collision, contactx+sxvel, contacty+syvel, normalx, normaly, time, rayinrect
+	--else
+	--	return false
+	--end
+	print("time1 time2", time, time2, normalx, normaly, normalx2, normaly2)
+	if collision and (rayinrect or (time >= 0.0 and time < 1.0)) and (not collision2 or (math.abs(time)<=math.abs(time2)))then
+		if collision and (rayinrect or (time >= 0.0 and time < 1.0)) then
+			if rayinrect then print("rayinrect!!!!!") end
+			return collision, contactx, contacty, normalx, normaly, time, rayinrect
+		else
+			return false
+		end
+	elseif collision2 and (rayinrect2 or (time2 >= 0.0 and time2 < 1.0)) and (not collision or (math.abs(time2)<math.abs(time)))then
+		if collision2 and (rayinrect2 or (time2 >= 0.0 and time2 < 1.0)) then
+			print("BRRRUUUH")
+			if rayinrect2 then print("rayinrect!!!!! but 2") end
+			print("the normals", normaly, normaly2)
+			return collision2, contactx2, contacty2, normalx2, normaly2, time2, rayinrect2
+		else
+			return false
+		end
+	end --]]
+end
+
+function DynamicRectDynamicRectCollision2(dx,dy,dw,dh, dxvel, dyvel, sx,sy,sw,sh, sxvel, syvel)
+	if dxvel == 0 and dyvel == 0 and sxvel == 0 and syvel == 0 then
+		return false
+	end
+
+	local dwhalf, dhhalf = dw/2, dh/2
+	local rayx,rayy = dx+dwhalf, dy+dhhalf
+	local collision, contactx, contacty, normalx, normaly, time, rayinrect =
+		RayRectangleCollision2(rayx,rayy,dxvel,dyvel, sx-dwhalf+sxvel, sy-dhhalf+syvel, sw+dw, sh+dh)
+	if collision and (rayinrect or (time >= 0.0 and time < 1.0)) then
+		if rayinrect then print("rayinrect!!!!!!!!!!!!!!!!") end
+		return collision, contactx, contacty, normalx, normaly, time, rayinrect
+	else
+		return false
+	end
+end
+
+-- returns newxvel1, newyvel1, xoffset1, yoffset1, newxvel2, newyvel2, onfloor, onleftwall, onrightwall, onceil
+function ResolveDynamicRectDynamicRectCollision(xvel1, yvel1, xvel2, yvel2, contactx, contacty, normalx, normaly, time, rayinrect,
+ mass1, mass2, bounce1, bounce2, friction1, friction2)
+		if rayinrect then print("yo rayinrect") end
+
+		-- relative velocities
+		local rxv, ryv = xvel1-xvel2, yvel1-yvel2
+		-- penetration speed
+		local ps = rxv * normalx + ryv * normaly
+		--if ps > 0 then
+		--	return false
+		--end
+
+		-- penetration components
+		local px,py = normalx*ps, normaly*ps
+
+		-- tangent components
+		local tx,ty = rxv-px, ryv-py
+
+		local friction = 0 + math.min(friction1,friction2)
+
+		-- we multiply by px,py later
+		local xmoment1 = mass1 
+		local ymoment1 = mass1
+		local xmoment2 = mass2
+		local ymoment2 = mass2
+		local totalmass = mass1+mass2
+
+		local impulsex1 = xmoment1/totalmass
+		local impulsey1 = ymoment1/totalmass
+		local impulsex2 = xmoment2/totalmass
+		local impulsey2 = ymoment2/totalmass
+		local ISNAN = ISNAN
+
+		if ISNAN(impulsex1) then impulsex1 = 1 end
+		if ISNAN(impulsex2) then impulsex2 = 1 end
+		if ISNAN(impulsey1) then impulsey1 = 1 end
+		if ISNAN(impulsey2) then impulsey2 = 1 end
+
+		--print(mass1, mass2, impulsex1, impulsex2, impulsey1, impulsey2, bounce1)
+
+		local newxvel1, newyvel1 = xvel1, yvel1
+		local newxvel2, newyvel2 = xvel2, yvel2
+		local xoffset, yoffset
+		if not rayinrect then
+			print("BOY")
+			xoffset = normalx * math.abs(xvel1) * (1 - time)
+			yoffset = normaly * math.abs(yvel1) * (1 - time)
+		else
+			print("rayinrect!", normalx, normaly, time)
+			love.graphics.circle("fill",contactx,contacty,3)
+			xoffset = normalx * math.abs(xvel1)-- * math.abs(time)
+			--yoffset = normaly * math.abs(yvel1) * math.abs(time) + yvel2 - yvel1
+			--yoffset = normaly * math.abs(yvel1)-- * math.abs(time) +
+			--yoffset = normaly * math.abs(yvel1) * math.abs(1) + yvel2
+			--yoffset = normaly * (math.abs(yvel1) + yvel1*math.abs(time)) + yvel2
+			--yoffset = normaly * (yvel1 + math.abs(yvel1*time)) best so far
+			yoffset = normaly * math.abs(yvel2 * (1 - time))
+			print("offset", xoffset,yoffset, yvel1, yvel2, "yvel2*time", yvel2 * time, "yvel2*(1-time)", yvel2 * (1-time))
+			print("yvel1*time", yvel1 * time, "yvel1*(1-time)", yvel1 * (1-time))
+			--xoffset = 0
+			--yoffset = 0
+		end
+
+		if mass2 == 1/0 then
+			newxvel1 = xvel1 + xoffset-- + math.abs(xvel2) * normalx
+			newyvel1 = yvel1 + yoffset-- + math.abs(yvel2) * normaly
+			--newxvel1 = xvel1 + xoffset + math.abs(xvel2) * normalx
+			--newyvel1 = yvel1 + yoffset + math.abs(yvel2) * normaly
+			--xoffset = 0
+			--yoffset = 0
+			newxvel2 = xvel2
+			newyvel2 = yvel2
+		else
+			newxvel1 = xvel1 - px*bounce1*(1 - impulsex1) + tx*friction*(1-impulsex1)
+			newyvel1 = yvel1 - py*bounce1*(1 - impulsey1) + ty*friction*(1-impulsey1)
+			newxvel2 = xvel2 + px*bounce2*(1 - impulsex2) - tx*friction*(1-impulsex2)
+			newyvel2 = yvel2 + py*bounce2*(1 - impulsey2) - tx*friction*(1-impulsey2)
+		end
+
+		return newxvel1, newyvel1, xoffset, yoffset, newxvel2, newyvel2,
+		       normaly==-1, normalx==1, normalx==-1, normaly==1
 end

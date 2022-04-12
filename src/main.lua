@@ -10,10 +10,12 @@ function love.update(dt)
 end
 
 local profiler = require("profiler")
+
+elevatorgoup = true
 function love.draw()
 	GAMESTATE:draw()
 
-	love.graphics.translate(100,100)
+	--love.graphics.translate(100,100)
 
 	CONTROL_LOCK.INGAME.Open()
 	if QueryScancode("left", CONTROL_LOCK.INGAME) then
@@ -23,75 +25,54 @@ function love.draw()
 		testbody3.props.body_xvel = 3
 	end
 	if QueryScancode("up", CONTROL_LOCK.INGAME) then
-		testbody3.props.body_yvel = -4
-		testbody.props.body_yvel = -4
+		if testbody3.props.body_onfloor then
+			testbody3.props.body_yvel = -8
+		end
+	end
+	if QueryScancode("down", CONTROL_LOCK.INGAME) then
+		testbody3.props.body_yvel = 3
 	end
 
-	--profiler.start()
+
+	if elevatorgoup then
+		testbody2.props.body_yvel = -3
+	else
+		testbody2.props.body_yvel = 3
+	end
+
+	if testbody2.props.body_y < 200 then
+		testbody2.props.body_y = 200
+		elevatorgoup = false
+		--testbody2.props.body_yvel = -0
+	elseif testbody2.props.body_y > 700 then
+		testbody2.props.body_y = 700
+		elevatorgoup = true
+		--testbody2.props.body_yvel = -0
+	end
+
+	print("++++")
+	print(testbody2.props.body_x, testbody2.props.body_y, testbody2.props.body_xvel, testbody2.props.body_yvel)
+	print(testbody3.props.body_x, testbody3.props.body_y, testbody3.props.body_xvel, testbody3.props.body_yvel)
+	print("++++")
+
 	local bodies = testworld:CollectBodies()
 	testworld:CollideBodies(bodies, true)
-	--profiler.stop()
 
-	--[[sorted = SortedAABB:new()
-	sorted:SortBodies(testworld:CollectBodies(), true)
-	collisions = sorted:GetPossibleCollisions()
-	for i,v in pairs(collisions) do
-		print(i.props.body_name)
-		x1,y1,w1,h1 = i:ComputeBoundingBoxLastFrame(true)
-		local xvel = i.props.body_xvel
-		local yvel = i.props.body_yvel
-		print(x1,y1,w1,h1,xvel,yvel)
+	print("----")
+	print(testbody2.props.body_x, testbody2.props.body_y, testbody2.props.body_xvel, testbody2.props.body_yvel)
+	print(testbody3.props.body_x, testbody3.props.body_y, testbody3.props.body_xvel, testbody3.props.body_yvel)
+	print("----")
 
-		local orderedcols = {}
-		for _,b in ipairs(v) do
-			print("  ", b.props.body_name)
-			x2,y2,w2,h2 = b:ComputeBoundingBoxLastFrame(true)
-			print("  ",x2,y2,w2,h2)
-			local arecolliding, contactx, contacty, normalx, normaly, time =
-				DynamicRectStaticRectCollision(x1,y1,w1,h1 , xvel,yvel, x2,y2,w2,h2)
+	testworld:UpdateBodies(bodies)
 
-			if RectangleCollision(x1,y1,w1,h1, x2,y2,w2,h2) then
-				print("  SHOULD BE COLLIDING")
-			end
-			print("  ",arecolliding, contactx, contacty, normalx, normaly, time)
-			if arecolliding then
-				table.insert(orderedcols, {b,contactx,contacty,normalx,normaly,time})
-			end
-		end
-
-		local old_xvel = i.props.body_xvel
-		local old_yvel = i.props.body_yvel
-
-		table.sort(orderedcols, function(a,b) return a[6]<b[6] end)
-		for _,c in ipairs(orderedcols) do
-			local newxvel, newyvel = ResolveDynamicRectStaticRectCollision(w1, h1, xvel, yvel,
-			  c[2], c[3], c[4], c[5], c[6])
-			i.props.body_xvel = newxvel
-			i.props.body_yvel = newyvel
-			--i.props.body_xvel = 0
-			--i.props.body_yvel = 0
-		end
-
-		i.props.body_x = i.props.body_x - old_xvel
-		i.props.body_y = i.props.body_y - old_yvel
-	end
-
-	for i,b in ipairs(bodies) do
-		b.props.body_x = b.props.body_x + b.props.body_xvel
-		b.props.body_y = b.props.body_y + b.props.body_yvel
-	end
-	testworld:ApplyGravity()--]]
-	
-	--print(testbody2.props.body_y)
-	
 	for _,b in ipairs(bodies) do
 		local fixtures = b:ActiveFixtures()
 		local hitboxes = b:ActiveHitboxes(true)
 
 		if b.props.body_type ~= "static" then
-			love.graphics.setColor(0.25,0.25,0.4)
+			love.graphics.setColor(0.25,0.25,0.4,0.3)
 		else
-			love.graphics.setColor(0.4,0.4,0.25)
+			love.graphics.setColor(0.4,0.4,0.1,0.3)
 		end
 		for i,h in ipairs(hitboxes) do
 			local x,y,w,h = h:Position()
@@ -123,6 +104,25 @@ function love.draw()
 			love.graphics.line(x,-1000,x,1000)
 		end
 	end
+	--[[	
+	rx,ry,rw,rh = 150,150,400,400
+	ax,ay,dx,dy = 250,250,0,0
+
+	--dx,dy = love.mouse.getPosition()
+	--dx,dy = dx-ax,dy-ay
+
+	local collision, contactx, contacty, normalx, normaly, time, rayinrect =
+		RayRectangleCollision3(ax,ay,dx,dy,rx,ry,rw,rh)
+	if collision then
+		love.graphics.circle("fill", contactx, contacty,10)
+		love.graphics.line(contactx,contacty, contactx+normalx*30,contacty+normaly*30)
+		love.graphics.setColor(1,1,0)
+	else
+		love.graphics.setColor(1,1,1)
+	end
+
+	love.graphics.rectangle("line", rx,ry,rw,rh)
+	love.graphics.line(ax,ay,ax+dx,ay+dy)--]]
 end
 
 function love.quit()
