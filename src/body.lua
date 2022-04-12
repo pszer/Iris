@@ -364,8 +364,8 @@ HandleBodyCollision_dynamic_dynamic     = function (bodya, bodyb)
 
 				--bodya.__xoffset = xoffset
 				--bodya.__yoffset = yoffset
-				--b1.body_x = b1.body_x + xoffset
-				--b1.body_y = b1.body_y + yoffset
+				b1.body_x = b1.body_x + xoffset
+				b1.body_y = b1.body_y + yoffset
 
 				b2.body_xvel = newxvel2
 				b2.body_yvel = newyvel2
@@ -413,13 +413,13 @@ testbody:AddFixture(testfixture, true)
 testbody:AddFixture(testfixture12, true)
 
 testfixture2 = IrisFixture:new({fixture_name = "fixture2"})
-testfixture2:NewHitbox({hitbox_x = 0, hitbox_y = 0, hitbox_w = 200, hitbox_h = 25})
+testfixture2:NewHitbox({hitbox_x = 0, hitbox_y = 0, hitbox_w = 200, hitbox_h = 200})
 testbody2 = IrisBody:new({body_x = 800, body_y = 400, body_name = "body2", body_xvel=0, body_mass=1/0})
 testbody2:AddFixture(testfixture2, true)
 
 testfixture3 = IrisFixture:new({fixture_name = "fixture3"})
 testfixture3:NewHitbox({hitbox_x = 0, hitbox_y = 0, hitbox_w = 50, hitbox_h = 50})
-testbody3 = IrisBody:new({body_x = 850, body_y = 150, body_name = "body3"})
+testbody3 = IrisBody:new({body_x = 450, body_y = 150, body_name = "body3"})
 testbody3:AddFixture(testfixture3, true)
 
 testfixture4 = IrisFixture:new({fixture_name = "fixture4"})

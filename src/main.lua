@@ -35,17 +35,17 @@ function love.draw()
 
 
 	if elevatorgoup then
-		testbody2.props.body_yvel = -3
+		testbody2.props.body_yvel = -1
 	else
-		testbody2.props.body_yvel = 3
+		testbody2.props.body_yvel = 1
 	end
 
 	if testbody2.props.body_y < 200 then
 		testbody2.props.body_y = 200
 		elevatorgoup = false
 		--testbody2.props.body_yvel = -0
-	elseif testbody2.props.body_y > 700 then
-		testbody2.props.body_y = 700
+	elseif testbody2.props.body_y > 500 then
+		testbody2.props.body_y = 500
 		elevatorgoup = true
 		--testbody2.props.body_yvel = -0
 	end

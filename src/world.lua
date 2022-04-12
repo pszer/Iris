@@ -187,6 +187,7 @@ function IrisWorld:CollideBodies(bodies)
 	end
 
 	-- dynamic collisions
+	
 	for bodya,v in pairs(possiblecollisions) do
 		local bodyaprops = bodya.props
 		--x1,y1,w1,h1 = bodya:ComputeBoundingBoxLastFrame(true)
@@ -225,6 +226,7 @@ function IrisWorld:CollideBodies(bodies)
 		end
 	end
 
+	--[[
 	for bodya,v in pairs(possiblecollisions) do
 		local bodyaprops = bodya.props
 		--x1,y1,w1,h1 = bodya:ComputeBoundingBoxLastFrame(true)
@@ -256,7 +258,7 @@ function IrisWorld:CollideBodies(bodies)
 				handler(bodya, bodyb)
 			end
 		end
-	end
+	end--]]
 end
 
 

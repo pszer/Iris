@@ -20,6 +20,6 @@ IrisHitboxPropPrototype = Props:prototype{
 
 	{"hitbox_name", "string", "hitbox", nil, "hitbox name"},
 
-	{"hitbox_enable", "boolean", false, nil,   "if false a hitbox will be treated as not existing"},
+	{"hitbox_enable", "boolean", false, nil,   "if false a hitbox will be treated as not existing"}, -- not done
 
 }
