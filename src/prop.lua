@@ -15,23 +15,23 @@ Props.__type  = "proptableprototype"
 -- be reused several times
 -- takes in a table of arguments, with each
 -- argument being a table for a row in the property table
--- {key, type, default, valid}
+-- {key, type, default, valid, options}
 -- key       - key for the property
 -- type      - lua type for the property, if nil then there is no type checking
 -- default   - default value for the property
 -- valid     - function called when setting the value of a property to check validity
 --             if nil then there is no input validity checking
 -- info      - a string of information of what the property is for (optional)
--- readonly  - if set to true then the property is unchangable after initial construction (optional)
+--
+-- possible options (all optional), multiple options can be used by combining options into one string eg "readonly+callonly"
+-- readonly  - if set to true then the property is unchangable after initial construction
+-- callonly  - if set to true and the property is a function, it is called with no arguments when indexed
 --
 -- validity checking functions work as follows
 -- they take 1 argument, which is what the property is being asked to be set to
 -- they should return true/false and the value that the property will be set to
 -- if it returns false as first argument then an error is raised
 --
--- notes about types:
--- functions are assumed to take no arguments and are called when indexed
--- "link" is synonymous with "function"
 --
 function Props:prototype(arg)
 	local p = {}
@@ -39,18 +39,12 @@ function Props:prototype(arg)
 	for _,row in pairs(arg) do
 		-- the property will be stored in p as
 		-- p[key] = {type, default, valid}
-		local property = {row[2], row[3], row[4], row[5] or row[1].." "..row[2], row[6]~=nil}
+		local property = {row[2], row[3], row[4], row[5] or row[1].." "..row[2],
+			row[6]~=nil and string.find(row[6], "readonly"),
+			row[6]~=nil and string.find(row[6], "callonly"),
+			}
 		setmetatable(property, PropsPrototypeRowMeta)
 		p[row[1]] = property
-
-		-- i use "link" as a type to describe properties
-		-- that link to other properties/values a lot. this type
-		-- doesn't exist and these links are implemented as
-		-- functions but the idea of a link is easier to read
-		-- only reason for this being here
-		if property[1] == "link" then
-			property[1] = "function"
-		end
 	end
 
 	setmetatable(p, Props)
@@ -64,7 +58,7 @@ end
 -- prototype.key.default
 -- prototype.key.valid
 PropsPrototypeRowMeta = {
-	type = 1, default = 2, valid = 3, info = 4, readonly = 5}
+	type = 1, default = 2, valid = 3, info = 4, readonly = 5, callonly = 6}
 PropsPrototypeRowMeta.__index = function (row, k)
 	return rawget(row, rawget(PropsPrototypeRowMeta, k))
 end
@@ -112,14 +106,20 @@ Props.__call = function (proto, init)
 			       .. " (" .. tostring(val) .. ")")
 		end
 
+		if row.type == "link" and iristype(validvalue) ~= "link" then
+			(rawget(p.__proptabledata, key)[2]) (validvalue)
+		end
+
 		rawset(p.__proptabledata, key, validvalue)
 	end
 
 	props.__index = function (p, key)
 		local v = rawget(p.__proptabledata, key)
 		if v ~= nil then
-			if type(v) == "function" then
+			if iristype(v) == "function" and p.__proto[key].callonly then
 				return v()
+			elseif iristype(v) == "link" then
+				return v[1]()
 			else
 				return v
 			end
@@ -130,6 +130,12 @@ Props.__call = function (proto, init)
 				error("key " .. tostring(key) .. "doesn't exist")
 				return nil
 			end
+		end
+	end
+
+	props.__call = function (props, t)
+		for k,v in pairs(t) do
+			props[k]=v
 		end
 	end
 

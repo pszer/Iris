@@ -61,6 +61,8 @@ end
 --   then it returns nil
 --]]
 function IrisBody:ComputeBoundingBox(solid)
+	solid = solid or true
+
 	local aabbmemo, aabbmemochanged
 	if solid then
 		aabbmemo = self.__activeAABBmemo_solid
@@ -81,7 +83,6 @@ function IrisBody:ComputeBoundingBox(solid)
 	local boxes = {}
 	local empty = true
 	for _,fixture in ipairs(fixtures) do
-		print(fixture.props.fixture_solid)
 		if fixture.props.fixture_solid == solid then
 			local box = {fixture:ComputeBoundingBox()}
 			if box[1] then
@@ -94,8 +95,14 @@ function IrisBody:ComputeBoundingBox(solid)
 	local x,y,w,h = nil,nil,nil,nil
 	if boxes then
 		x,y,w,h = ComputeBoundingBox(boxes)
-		print(self.props.body_name)
-		print(x,y,w,h)
+
+		for i,v in ipairs(boxes) do
+			print("box, ", unpack(v))
+		end
+
+		if not x then
+			return nil, nil, nil, nil
+		end
 
 		local tx = x - self.props.body_x
 		local ty = y - self.props.body_y
@@ -149,7 +156,9 @@ function IrisBody:ActiveHitboxes(solid)
 	for _,fixture in ipairs(f) do
 		if fixture.props.fixture_solid == solid then
 			for i,h in pairs(fixture.props.fixture_hitboxes) do
+				if h.props.hitbox_enable then
 				a[#a+1] = h
+				end
 			end
 		end
 	end
@@ -169,7 +178,6 @@ function IrisBody:AddFixture(fixture, activate)
 	fixture.props.fixture_parent_x = PropLink(selfprops, "body_x")
 	fixture.props.fixture_parent_y = PropLink(selfprops, "body_y")
 	fixture.props.fixture_parent = self
-	fixture:SetFixtureHitboxesParent(self)
 
 	local f = self.__fixtures
 	f[#f+1] = fixture
@@ -246,12 +254,31 @@ function IrisBody:CanCollideWith(body)
 		return false
 	end
 
-	--[[local sprops = self.props
+	local sprops = self.props
 	local bprops = body.props
 	local sclasses = sprops.body_classes
 	local sclassesenabled = sprops.body_classesenabled
 	local bclasses = bprops.body_classes
-	local bclassesenabled = sprops.body_classesenabled--]]
+	local bclassesenabled = sprops.body_classesenabled
+
+	local classmatch = false
+	for _,c1 in ipairs(sclassesenabled) do
+		if classmatch then break end
+		for _,c2 in ipairs(bclasses) do
+			if c1 == c2 then classmatch = true break
+			end
+		end
+	end
+
+	for _,c1 in ipairs(bclassesenabled) do
+		if classmatch then break end
+		for _,c2 in ipairs(sclasses) do
+			if c1 == c2 then classmatch = true break
+			end
+		end
+	end
+
+	if not classmatch then return false end
 
 	if __BODY_TYPE_COLLISION_SWAP_ORDER__[selftype][bodytype] then
 		return true, body, self
@@ -259,6 +286,177 @@ function IrisBody:CanCollideWith(body)
 		return true, self, body
 	end
 end
+--
+--
+--
+--
+--
+--
+--
+--
+--
+--
+--
+--
+--
+--
+--
+--
+--
+--
+--
+--
+--
+--
+--
+--
+--
+--
+
+HandleBodyCollision_static_static_nonsolid       = nil
+HandleBodyCollision_static_dynamic_nonsolid      = nil
+HandleBodyCollision_dynamic_static_nonsolid      = function (bodya, bodyb)
+	local bodyaprops = bodya.props
+	local bodyahitboxes = bodya:ActiveHitboxes(true)
+	local bodybhitboxes = bodyb:ActiveHitboxes(true)
+
+	local collided = false
+
+	-- this is quadratic time, do something better
+	for _, hitboxa in ipairs(bodyahitboxes) do
+		local x1,y1,w1,h1 = hitboxa:Position()
+		for _, hitboxb in ipairs(bodybhitboxes) do
+			local bodybprops = bodyb.props
+			local x2,y2,w2,h2 = hitboxb:Position()
+			local xvel = bodyaprops.body_xvel
+			local yvel = bodyaprops.body_yvel
+
+			local collision, newxvel, newyvel, onfloor, onleftwall, onrightwall, onceil
+		
+			local haprops = hitboxb.props
+			local hbprops = hitboxb.props
+			if hbprops.hitbox_shape == "rect" then
+				collision
+					= DynamicRectStaticRectCollision(x1,y1,w1,h1, xvel, yvel, x2,y2,w2,h2)
+			else
+				collision
+					= DynamicRectStaticTriangleCollision(x1,y1,w1,h1, xvel, yvel, x2,y2,w2,h2,
+						hbprops.hitbox_triangleorientation) 
+			end
+			if collision then
+				local enititya = bodyaprops.body_parententity
+				local enitityb = bodybprops.body_parententity
+
+				local hitboxacallback = haprops.hitbox_callback 
+				local hitboxbcallback = hbprops.hitbox_callback
+
+				if hitboxacallback then
+					hitboxacallback(hitboxa, hitboxb, bodya, bodyb, entitya, entityb)
+				end
+				if hitboxbcallback then
+					hitboxbcallback(hitboxb, hitboxa, bodyb, bodya, entityb, entitya)
+				end
+			end
+		end
+	end
+
+	return collided
+end
+HandleBodyCollision_dynamic_dynamic_nonsolid     = function (bodya, bodyb)
+	local bodyaprops = bodya.props
+	local bodyahitboxes = bodya:ActiveHitboxes(true)
+	local bodybhitboxes = bodyb:ActiveHitboxes(true)
+
+	local collided = false
+
+	-- this is quadratic time, do something better
+	for _, hitboxa in ipairs(bodyahitboxes) do
+		local bodyaprops = bodya.props
+		local bodya = bodya
+
+		local amass = bodyaprops.body_mass
+		for _, hitboxb in ipairs(bodybhitboxes) do
+			local bodybprops = bodyb.props
+			local bodyb = bodyb
+
+			local b1, b2 = bodyaprops, bodybprops
+			local hitbox1, hitbox2 = hitboxa, hitboxb
+
+			local x1,y1,w1,h1 = hitboxa:Position()
+			local x2,y2,w2,h2 = hitboxb:Position()
+
+			local xvel1 = b1.body_xvel
+			local yvel1 = b1.body_yvel
+			local xvel2 = b2.body_xvel
+			local yvel2 = b2.body_yvel
+
+			local collision
+				= DynamicRectDynamicRectCollision(x1,y1,w1,h1, xvel1, yvel1,
+				                                  x2,y2,w2,h2, xvel2, yvel2)
+			if collision then
+				local enitity1 = b1.body_parententity
+				local enitity2 = b2.body_parententity
+
+				local hitbox1callback = hitbox1.props.hitbox_callback 
+				local hitbox2callback = hitbox2.props.hitbox_callback
+
+				if hitbox1callback then
+					hitbox1callback(h1, h2, b1, b2, entity1, entity2)
+				end
+				if hitbox2callback then
+					hitbox2callback(h2, h1, b2, b1, entity2, entity1)
+				end
+			end
+		end
+	end
+
+	return collided
+end
+HandleBodyCollision_kinematic_static_nonsolid    = nil
+HandleBodyCollision_static_kinematic_nonsolid    = nil
+HandleBodyCollision_kinematic_kinematic_nonsolid = nil
+HandleBodyCollision_dynamic_kinematic_nonsolid   = nil
+HandleBodyCollision_kinematic_dynamic_nonsolid   = nil
+
+-- collision handlers for handling body non solid collisions of specific types
+__BODY_TYPE_NONSOLID_COLLISION_HANDLER__ = {
+ static={}, dynamic={}, kinematic={}}
+__BODY_TYPE_NONSOLID_COLLISION_HANDLER__["static"]["static"]       = HandleBodyCollision_static_static_nonsolid       
+__BODY_TYPE_NONSOLID_COLLISION_HANDLER__["static"]["dynamic"]      = HandleBodyCollision_static_dynamic_nonsolid      
+__BODY_TYPE_NONSOLID_COLLISION_HANDLER__["dynamic"]["static"]      = HandleBodyCollision_dynamic_static_nonsolid      
+__BODY_TYPE_NONSOLID_COLLISION_HANDLER__["dynamic"]["dynamic"]     = HandleBodyCollision_dynamic_dynamic_nonsolid     
+__BODY_TYPE_NONSOLID_COLLISION_HANDLER__["kinematic"]["static"]    = HandleBodyCollision_kinematic_static_nonsolid    
+__BODY_TYPE_NONSOLID_COLLISION_HANDLER__["static"]["kinematic"]    = HandleBodyCollision_static_kinematic_nonsolid    
+__BODY_TYPE_NONSOLID_COLLISION_HANDLER__["kinematic"]["dynamic"]   = HandleBodyCollision_kinematic_dynamic_nonsolid   
+__BODY_TYPE_NONSOLID_COLLISION_HANDLER__["dynamic"]["kinematic"]   = HandleBodyCollision_dynamic_kinematic_nonsolid   
+__BODY_TYPE_NONSOLID_COLLISION_HANDLER__["kinematic"]["kinematic"] = HandleBodyCollision_kinematic_kinematic_nonsolid
+
+--
+--
+--
+--
+--
+--
+--
+--
+--
+--
+--
+--
+--
+--
+--
+--
+--
+--
+--
+--
+--
+--
+--
+--
+--
+--
 
 HandleBodyCollision_static_static       = nil
 HandleBodyCollision_static_dynamic      = nil
@@ -279,22 +477,50 @@ HandleBodyCollision_dynamic_static      = function (bodya, bodyb)
 			local yvel = bodyaprops.body_yvel
 
 			local collision, newxvel, newyvel, onfloor, onleftwall, onrightwall, onceil
-				= DynamicRectStaticRectCollisionFull(x1,y1,w1,h1, xvel, yvel, x2,y2,w2,h2)
+		
+			local haprops = hitboxb.props
+			local hbprops = hitboxb.props
+			if hbprops.hitbox_shape == "rect" then
+				collision, newxvel, newyvel, onfloor, onleftwall, onrightwall, onceil
+					= DynamicRectStaticRectCollisionFull(x1,y1,w1,h1, xvel, yvel, x2,y2,w2,h2,
+						bodyaprops.body_friction, bodybprops.body_friction)
+			else
+				collision, newxvel, newyvel, onfloor, onleftwall, onrightwall, onceil
+					= DynamicRectStaticTriangleCollisionFull(x1,y1,w1,h1, xvel, yvel, x2,y2,w2,h2,
+						hbprops.hitbox_triangleorientation, bodyaprops.body_friction, bodybprops.body_friction, hitboxb.__hyp_normalx, hitboxb.__hyp_normaly)
+			end
 			if collision then
-				bodyaprops.body_xvel = newxvel
-				bodyaprops.body_yvel = newyvel
+				if bodyaprops.body_collide and bodybprops.body_collide then
 
-				bodyaprops.body_onfloor = bodyaprops.body_onfloor or onfloor
-				bodyaprops.body_onleftwall = bodyaprops.body_onleftwall or onleftwall
-				bodyaprops.body_onrightwall = bodyaprops.body_onrightwall or onrightwall
-				bodyaprops.body_onceil = bodyaprops.body_onceil or onceil
+					bodyaprops.body_xvel = newxvel
+					bodyaprops.body_yvel = newyvel
 
-				bodybprops.body_onfloor = bodybprops.body_onfloor or onceil
-				bodybprops.body_onleftwall = bodybprops.body_onleftwall or onrightwall
-				bodybprops.body_onrightwall = bodybprops.body_onrightwall or onleftwall
-				bodybprops.body_onceil = bodybprops.body_onceil or onfloor
+					bodyaprops.body_onfloor = bodyaprops.body_onfloor or onfloor
+					bodyaprops.body_onleftwall = bodyaprops.body_onleftwall or onleftwall
+					bodyaprops.body_onrightwall = bodyaprops.body_onrightwall or onrightwall
+					bodyaprops.body_onceil = bodyaprops.body_onceil or onceil
 
-				collided = true
+					bodybprops.body_onfloor = bodybprops.body_onfloor or onceil
+					bodybprops.body_onleftwall = bodybprops.body_onleftwall or onrightwall
+					bodybprops.body_onrightwall = bodybprops.body_onrightwall or onleftwall
+					bodybprops.body_onceil = bodybprops.body_onceil or onfloor
+
+					collided = true
+
+				end
+
+				local enititya = bodyaprops.body_parententity
+				local enitityb = bodybprops.body_parententity
+
+				local hitboxacallback = haprops.hitbox_callback 
+				local hitboxbcallback = hbprops.hitbox_callback
+
+				if hitboxacallback then
+					hitboxacallback(hitboxa, hitboxb, bodya, bodyb, entitya, entityb)
+				end
+				if hitboxbcallback then
+					hitboxbcallback(hitboxb, hitboxa, bodyb, bodya, entityb, entitya)
+				end
 			end
 		end
 	end
@@ -319,6 +545,7 @@ HandleBodyCollision_dynamic_dynamic     = function (bodya, bodyb)
 			local bodyb = bodyb
 
 			local b1, b2 = bodyaprops, bodybprops
+			local hitbox1, hitbox2 = hitboxa, hitboxb
 
 			local bmass = b2.body_mass
 			local x1,y1,w1,h1 = hitboxa:Position()
@@ -333,21 +560,11 @@ HandleBodyCollision_dynamic_dynamic     = function (bodya, bodyb)
 			local mass1,bounce1,friction1 = b1.body_mass,b1.body_bounce,b1.body_friction
 			local mass2,bounce2,friction2 = b2.body_mass,b2.body_bounce,b2.body_friction
 
-			
-			if xvel1 < 0 and b2.body_onleftwall then mass2 = 1/0 end
-			if xvel1 > 0 and b2.body_onrightwall then mass2 = 1/0 end
-			if yvel1 < 0 and b2.body_onfloor then mass2 = 1/0 end
-			if yvel1 > 0 and b2.body_onceil then mass2 = 1/0 end
-
-			if xvel2 < 0 and b1.body_onleftwall then mass1 = 1/0 end
-			if xvel2 > 0 and b1.body_onrightwall then mass1 = 1/0 end
-			if yvel2 < 0 and b1.body_onfloor then mass1 = 1/0 end
-			if yvel2 > 0 and b1.body_onceil then mass1 = 1/0 end
-
 			if mass1 < mass2 then
 				b1,b2 = bodyaprops, bodybprops
 			else
 				b1,b2 = bodybprops, bodyaprops
+				hitbox1, hitbox2 = hitbox2, hitbox1
 				x1,x2=x2,x1
 				y1,y2=y2,y1
 				w1,w2=w2,w1
@@ -362,23 +579,38 @@ HandleBodyCollision_dynamic_dynamic     = function (bodya, bodyb)
 				                                      x2,y2,w2,h2, xvel2, yvel2,
 													  mass1,mass2, bounce1,bounce2, friction1,friction2)
 			if collision then
-				b1.body_xvel = newxvel1
-				b1.body_yvel = newyvel1
+				if bodyaprops.body_collide and bodybprops.body_collide then
+					b1.body_xvel = newxvel1
+					b1.body_yvel = newyvel1
 
-				b2.body_xvel = newxvel2
-				b2.body_yvel = newyvel2
+					b2.body_xvel = newxvel2
+					b2.body_yvel = newyvel2
 
-				b1.body_onfloor = b1.body_onfloor or onfloor
-				b1.body_onleftwall = b1.body_onleftwall or onleftwall
-				b1.body_onrightwall = b1.body_onrightwall or onrightwall
-				b1.body_onceil = b1.body_onceil or onceil
+					b1.body_onfloor = b1.body_onfloor or onfloor
+					b1.body_onleftwall = b1.body_onleftwall or onleftwall
+					b1.body_onrightwall = b1.body_onrightwall or onrightwall
+					b1.body_onceil = b1.body_onceil or onceil
 
-				b2.body_onfloor = b2.body_onfloor or onceil
-				b2.body_onleftwall = b2.body_onleftwall or onrightwall
-				b2.body_onrightwall = b2.body_onrightwall or onleftwall
-				b2.body_onceil = b2.body_onceil or onfloor
+					b2.body_onfloor = b2.body_onfloor or onceil
+					b2.body_onleftwall = b2.body_onleftwall or onrightwall
+					b2.body_onrightwall = b2.body_onrightwall or onleftwall
+					b2.body_onceil = b2.body_onceil or onfloor
 
-				collided = true
+					collided = true
+				end
+
+				local enitity1 = b1.body_parententity
+				local enitity2 = b2.body_parententity
+
+				local hitbox1callback = hitbox1.props.hitbox_callback 
+				local hitbox2callback = hitbox2.props.hitbox_callback
+
+				if hitbox1callback then
+					hitbox1callback(h1, h2, b1, b2, entity1, entity2)
+				end
+				if hitbox2callback then
+					hitbox2callback(h2, h1, b2, b1, entity2, entity1)
+				end
 			end
 		end
 	end
@@ -404,10 +636,39 @@ __BODY_TYPE_COLLISION_HANDLER__["kinematic"]["dynamic"]   = HandleBodyCollision_
 __BODY_TYPE_COLLISION_HANDLER__["dynamic"]["kinematic"]   = HandleBodyCollision_dynamic_kinematic   
 __BODY_TYPE_COLLISION_HANDLER__["kinematic"]["kinematic"] = HandleBodyCollision_kinematic_kinematic
 
+--
+--
+--
+--
+--
+--
+--
+--
+--
+--
+--
+--
+--
+--
+--
+--
+--
+--
+--
+--
+--
+--
+--
+--
+--
+--
+
+
 testfixture = IrisFixture:new({fixture_name = "fixture1"})
 testfixture:NewHitbox({hitbox_x = 50, hitbox_y = 50, hitbox_w = 100, hitbox_h = 100 })
 testfixture:NewHitbox({hitbox_x = 0, hitbox_y = 00, hitbox_w = 100, hitbox_h = 100 })
-testbody = IrisBody:new({body_x = 190, body_y = 80, body_name = "body1", body_xvel=0, body_mass=100})
+testbody = IrisBody:new({body_x = 190, body_y = 80, body_name = "body1", body_xvel=0, body_mass=10,
+	body_classes={"ent"}, body_classesenabled = {"world"} })
 testfixture12 = IrisFixture:new({fixture_solid=false, fixture_name = "fixture12"})
 testfixture12.props.fixture_solid = false
 testfixture12:NewHitbox({hitbox_x = 165, hitbox_y = 165, hitbox_w = 100, hitbox_h = 100 })
@@ -416,32 +677,39 @@ testbody:AddFixture(testfixture12, true)
 
 testfixture2 = IrisFixture:new({fixture_name = "fixture2"})
 testfixture2:NewHitbox({hitbox_x = 0, hitbox_y = 0, hitbox_w = 200, hitbox_h = 3})
-testbody2 = IrisBody:new({body_x = 800, body_y = 400, body_name = "body2", body_xvel=0, body_mass=1/0})
+testbody2 = IrisBody:new({body_x = 800, body_y = 400, body_name = "body2", body_xvel=0, body_mass=1/0,
+	body_classes={"world"}, body_classesenabled = {"world"} })
 testbody2:AddFixture(testfixture2, true)
 
 testfixture3 = IrisFixture:new({fixture_name = "fixture3"})
 testfixture3:NewHitbox({hitbox_x = 0, hitbox_y = 0, hitbox_w = 50, hitbox_h = 50})
-testbody3 = IrisBody:new({body_x = 450, body_y = 150, body_name = "body3"})
+testbody3 = IrisBody:new({body_x = 450, body_y = 150, body_name = "body3",
+	body_classes={"ent"}, body_classesenabled = {"world"} })
 testbody3:AddFixture(testfixture3, true)
 
 testfixture4 = IrisFixture:new({fixture_name = "fixture4"})
-testfixture4:NewHitbox({hitbox_x = 0, hitbox_y = 0, hitbox_w = 600, hitbox_h = 100})
-testfixture4:NewHitbox({hitbox_x = 600, hitbox_y = 50, hitbox_w = 200, hitbox_h = 100})
-testbody4 = IrisBody:new({body_x = 0, body_y = 350, body_name = "body4", body_type = "static"})
+testfixture4:NewHitbox({hitbox_x = 0, hitbox_y = 0, hitbox_w = 580, hitbox_h = 100})
+--testfixture4:NewHitbox({hitbox_x = 600, hitbox_y = 50, hitbox_w = 200, hitbox_h = 100})
+testbody4 = IrisBody:new({body_x = 0, body_y = 350, body_name = "body4", body_type = "static", body_classes={"world"}})
 testbody4:AddFixture(testfixture4, true)
+
+testfixture8 = IrisFixture:new({fixture_name = "fixture8"})
+testfixture8:NewHitbox({hitbox_x = 0, hitbox_y = 0, hitbox_w = 180, hitbox_h = 50})
+testbody8 = IrisBody:new({body_x = 600, body_y = 400, body_name = "body8", body_type = "static", body_classes={"world"}})
+testbody8:AddFixture(testfixture8, true)
+
+testfixture7 = IrisFixture:new({fixture_name = "fixture7"})
+testfixture7:NewHitbox({hitbox_x = 0, hitbox_y = 0, hitbox_w = 100, hitbox_h = 50, hitbox_shape="triangle",
+hitbox_triangleorientation="topright"})
+testbody7 = IrisBody:new({body_x = 600, body_y = 350, body_name = "body7", body_type = "static", body_classes={"world"}})
+testbody7:AddFixture(testfixture7, true)
 
 testfixture5 = IrisFixture:new({fixture_name = "fixture5"})
 testfixture5:NewHitbox({hitbox_x = 0, hitbox_y = 0, hitbox_w = 600, hitbox_h = 100})
-testfixture5:NewHitbox({hitbox_x = 600, hitbox_y = 50, hitbox_w = 200, hitbox_h = 100})
-testbody5 = IrisBody:new({body_x = 0, body_y = -50, body_name = "body5", body_type = "static"})
+testbody5 = IrisBody:new({body_x = 0, body_y = -50, body_name = "body5", body_type = "static", body_classes={"world"}})
 testbody5:AddFixture(testfixture5, true)
 
 testfixture6 = IrisFixture:new({fixture_name = "fixture6"})
 testfixture6:NewHitbox({hitbox_x = 0, hitbox_y = 0, hitbox_w = 25, hitbox_h = 25})
-testbody6 = IrisBody:new({body_x = 200, body_y = 200, body_name = "body6", body_type = "static"})
+testbody6 = IrisBody:new({body_x = 200, body_y = 200, body_name = "body6", body_type = "static", body_classes={"world"}})
 testbody6:AddFixture(testfixture6, true)
-
-print("ppp")
---print(testbody:ComputeBoundingBox(true))
-print(testbody2:ComputeBoundingBox(true))
-print("ppp")

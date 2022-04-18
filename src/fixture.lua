@@ -97,11 +97,11 @@ function IrisFixture.__tostring(f)
 	return s
 end
 
-function IrisFixture:SetFixtureHitboxesParent(body)
+--[[function IrisFixture:SetFixtureHitboxesParent(body)
 	for _,box in pairs(self.props.fixture_hitboxes) do
 		box.props.hitbox_parentbody = body
 		box.props.hitbox_parentfixture = self
 		box.props.hitbox_parent_x      = PropLink(self.props, "fixture_parent_x")
 		box.props.hitbox_parent_y      = PropLink(self.props, "fixture_parent_y")
 	end
-end
+end--]]

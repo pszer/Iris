@@ -7,6 +7,7 @@
 --]]
 --
 
+require 'math'
 require "props/hitboxprops"
 
 IrisHitbox = {}
@@ -15,9 +16,42 @@ IrisHitbox.__type = "irishitbox"
 
 function IrisHitbox:new(props)
 	local box = {
-		props = IrisHitboxPropPrototype(props)
+		props = IrisHitboxPropPrototype(props),
+
+		-- normal of hypotenuse for triangle hitboxes
+		__hyp_normalx = 0,
+		__hyp_normaly = 0
 	}
 	setmetatable(box, IrisHitbox)
+
+	if box.props.hitbox_shape == "triangle" then
+		local W = box.props.hitbox_w
+		local H = box.props.hitbox_h
+		local d = math.sqrt(W*W + H*H)
+		local w = H/d
+		local h = W/d
+
+		local orient = box.props.hitbox_triangleorientation
+
+		local x,y = 0,0
+		if orient == "topright" then
+			x = w
+			y = -h
+		elseif orient == "topleft" then
+			x = -w
+			y = -h
+		elseif orient == "bottomleft" then
+			x = -w
+			y = h
+		else
+			x = w
+			y = h
+		end
+
+		box.__hyp_normalx = x
+		box.__hyp_normaly = y
+	end
+
 	return box
 end
 

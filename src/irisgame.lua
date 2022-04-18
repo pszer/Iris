@@ -10,6 +10,8 @@ require "iristype"
 require "world"
 require "room"
 require "props/irisprops"
+require "render"
+require "bodyconf"
 
 IRISGAME = {
 	props = IrisGamePropPrototype()
@@ -17,13 +19,18 @@ IRISGAME = {
 
 IRISGAME.props.iris_enttables:AddTable(PlayerEntTable)
 
+function IRISGAME:load()
+	self:LoadRoom(require("rooms/testroom"))
+end
+
 --[[ order for entity updates
 -- 1. collect signals
 -- 2. delete entities marked for deletion
--- 3. for each entity, let them handle signals then call their update function
--- 4. delete old signals
+-- 3. update world collisions
+-- 4. for each entity, let them handle signals then call their update function
+-- 5. delete old signals
 --]]
-function IRISGAME:update_ents()
+function IRISGAME:UpdateEnts()
 	-- collect all signals from entities
 	local collect_signals = function (e)
 		for _,sig in pairs(e.__signals_pending) do
@@ -46,11 +53,17 @@ function IRISGAME:update_ents()
 	-- delete any entities with props.ent_delete == true
 	self.props.iris_enttables:DeleteMarked()
 
+	local world = self.props.iris_world
+	if world then
+		world:CollideBodies()
+		world:CollideLogicBodies()
+	end
+
 	-- each entity will handle current signals
 	-- then call their update functions (if flags for these are enabled)
 	--
 	local update = function (e)
-		if e.props.ent_catchsignal then
+		if e.props.ent_catchsignalflag then
 			for _,sig in pairs(self.props.iris_signals) do
 				if not (sig.sig_onlyfordest and sig.sig_dest ~= e.ent_id) then
 					e:HandleSignal(sig)
@@ -64,7 +77,7 @@ function IRISGAME:update_ents()
 	end
 
 	for _,ent in pairs(self.props.iris_enttables) do
-		if ent.props.ent_update then
+		if ent.props.ent_updateflag then
 			ent:Update()
 		end
 	end
@@ -96,9 +109,23 @@ function IRISGAME:DisableEntTable(ID)
 	end
 end
 
-fps = 0
+function IRISGAME:LoadRoom(room)
+	local world, enttable = IrisRooms:LoadRoom(room, self.props.iris_enttables)
+
+	if world then
+		self.props.iris_enttables:RemoveTable(self.props.iris_roomenttableid)
+
+		self.props.iris_roomenttableid = enttable.props.enttable_id
+		self.props.iris_world = world
+
+		IrisRenderer.props.render_renderworlddebug = true
+		IrisRenderer.props.render_world = world
+	end
+end
+
+FPS = 0
 function IRISGAME:update(dt)
-	fps = 1/dt
+	FPS = 1/dt
 	TICKACC = TICKACC + dt
 	if TICKACC >= TICKTIME then
 		TICKACC = TICKACC - TICKTIME
@@ -106,7 +133,7 @@ function IRISGAME:update(dt)
 		-- game logic tied to 64 HZ
 		--
 
-		self:update_ents()
+		self:UpdateEnts()
 
 		UpdateKeys()
 
@@ -116,5 +143,7 @@ function IRISGAME:update(dt)
 end
 
 function IRISGAME:draw()
-	love.graphics.print("FPS " .. tostring(fps), 0,0)
+	IrisRenderer:Draw()
+	--love.graphics.print("FPS " .. tostring(fps), 0,0)
+	--IrisRenderer:RenderWorldDebug(testworld)
 end

@@ -17,8 +17,12 @@ IrisBodyPropPrototype = Props:prototype{
 	{"body_name", "string", "irisbody", nil, "body name"}, -- done
 
 	{"body_type", "string", "dynamic", PropIsOneOf{"static","dynamic","kinematic"},  "type can either be static or dynamic", "readonly"},
+	{"body_collide", "boolean", true, nil, [[if true a body's solid fixtures and hitboxes collide with the world
+	                                         if false a body's solid fixtures and hitboxes don't collide with the world
+											 but will still be checked for collisions with other solid bodies
+											 and call callback functions]]}, -- not implemented
 
-	-- following not implemented for now
+	-- following not implemented
 	{"body_classes", "table", nil, PropDefaultTable{}, [[a list of strings that determine the body's classes i.e what they
 	                                                     are in the game, bodies will only collide with bodies of classes specified
 														 in body_classesenabled]]},
@@ -32,9 +36,11 @@ IrisBodyPropPrototype = Props:prototype{
 	{"body_onrightwall", "boolean", false, nil, "if true a body's hitboxes are touching a right wall"},
 
 	-- for dynamic bodies
-	{"body_friction", "number", 0, PropClamp(0,1), "a body's friction"},
+	{"body_friction", "number", 0.1, PropClamp(0,1), "a body's friction"},
 	{"body_bounce",   "number", 1, nil, "a body's restitution/bounce"},
 
-	{"body_mass", "number", 1, PropMin(0), "body mass used in dynamic collisions, +inf values are accepted"}
+	{"body_mass", "number", 1, PropMin(0), "body mass used in dynamic collisions, +inf values are accepted"},
+
+	{"body_parententity", nil, nil, nil, "body's parent entity. if nil the body has no parent entity"}
 
 }

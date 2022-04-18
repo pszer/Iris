@@ -39,7 +39,10 @@ function IrisEnt:new(props)
 end
 
 function IrisEnt:Update()
-	-- do nothing
+	local u = self.props.ent_update
+	if u then
+		u(self)
+	end
 end
 
 -- marks entity for deletion
@@ -51,7 +54,7 @@ function IrisEnt:Delete()
 end
 
 function IrisEnt:HandleSignal(sig)
-	-- do nothing
+	self.props.ent_handlesignal(self, sig)
 end
 
 -- adds a signal to entities table of signals to be sent next tick

@@ -81,9 +81,10 @@ function EntTable:CollectBodies()
 	for _,ent in pairs(self.ents) do
 		local body = ent.props.ent_body
 		if body then
-			table.insert(b, body)
+			table.insert(bodies, body)
 		end
 	end
+	return bodies
 end
 
 -- applies a function to all entities in
@@ -201,10 +202,10 @@ function EntTableCollection:DeleteMarked()
 end
 
 -- returns a table of all bodies in 
-function EntTableCollection:GetBodies()
+function EntTableCollection:CollectBodies()
 	local bodies = {}
 	for _,etable in pairs(self.__active_tables) do
-		for _,body in pairs(etable:GetBodies()) do
+		for _,body in pairs(etable:CollectBodies()) do
 			table.insert(bodies, body)
 		end
 	end

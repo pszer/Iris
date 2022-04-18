@@ -4,20 +4,110 @@
 --]]
 --
 
+require "props/roomprops"
 require "body"
+require "world"
+require "enttable"
 
-IrisRoom = {}
-IrisRoom.__index = IrisRoom
-IrisRoom.__type  = "irisroom"
+IrisRoomData = {}
+IrisRoomData.__index = IrisRoomdata
+IrisRoomData.__type  = "irisroomdata"
 
-function IrisRoom:new(props)
+function IrisRoomData:new(props)
 	local this = {
-		props = IrisRoom
+		props = IrisRoomPropPrototype(props)
 	}
-	setmetatable(this, IrisRoom)
+	setmetatable(this, IrisRoomData)
 	return this
 end
 
-testroom = IrisRoom:new()
-testroom.props.room_body = testbody
+--testroom = IrisRoomData:new()
+--testroom.props.room_body = testbody
 
+-- table of all room data
+IrisRooms = {rooms = {}}
+IrisRooms.__index = IrisRooms
+
+function IrisRooms:AddRoom(room, overwrite)
+	local name = room.props.room_name
+
+	if self.rooms[name] and not overwrite then
+		print("tried to overwite room with name \"" .. name "\"")
+		return false
+	end
+
+	self.rooms[name] = room
+	return true
+end
+
+-- populates a world and entity table and returns them
+function IrisRooms:LoadRoom(room, enttablecollection)
+	local room_name = room.props.room_name
+
+	local worldprops = room.props.room_worldprops
+	world = IrisWorld:new(worldprops)
+	enttable = EntTable:new{enttable_name = (room_name or "room") .. "_enttable"}
+
+	for i,v in pairs(room.props) do
+		print(i,v)
+	end
+
+	for _,entprops in ipairs(room.props.room_entspawners) do
+		enttable:AddEntity(IrisEnt:new(entprops))
+	end
+
+	geometry_bodies = {}
+	local count = 1
+	for _,shape in ipairs(room.props.room_geometry) do
+		local x,y,w,h = shape.x, shape.y, shape.w, shape.h
+		local orient = shape.orient
+		local hshape
+		if orient then
+			hshape = "triangle"
+		else
+			orient = "nil"
+			hshape = "rect"
+		end
+		local props = shape.props or {}
+
+		local hitbox = IrisHitbox:new{hitbox_w = w, hitbox_h = h, 
+		                               hitbox_shape = hshape, hitbox_triangleorientation = orient}
+		local fixture = IrisFixture:new{fixture_solid = true}
+		fixture:AddHitbox(hitbox)
+		local body = IrisBody:new{body_x = x, body_y = y, body_type = "static", body_classes = {"world"}}
+		body.props(props)
+		body:AddFixture(fixture, true)
+		table.insert(geometry_bodies, body)
+	end
+
+	if enttablecollection then
+		enttablecollection:AddTable(enttable)
+		world:CollectEntTableCollection(enttablecollection)
+		world:CollectTable(geometry_bodies)
+	else
+		world:CollectEntTable(enttable)
+		world:CollectTable(geometry_bodies)
+	end
+
+	return world,enttable
+end
+
+function IrisRooms:LoadRoomFromFile(name, enttablecollection)
+	self:LoadRoom(require(name), enttablecollection)
+end
+
+function IrisRooms:AddRoomFile(fname, enttablecollection)
+	local room = require(fname)
+	if iristype(room) ~= "irisroomdata" then
+		print(fname .. " is not a valid room file, no irisroomdata returned")
+		return false
+	end
+
+	return self.LoadRoom(room, enttablecollection)
+end
+
+function IrisRooms:AddRoomFiles(fnames, enttablecollection)
+	for i,v in ipairs(fnames) do
+		self:AddRoomFile(v)
+	end
+end

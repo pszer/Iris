@@ -4,7 +4,9 @@
 --
 
 require 'math'
+
 require "set"
+require "timer"
 
 -- limits property to be one of the entries in given table argument t
 function PropIsOneOf(t)
@@ -66,6 +68,18 @@ function PropEmptySet()
 	end
 end
 
+function PropNewTimer(timer, args)
+	timer = timer or TimerTick
+	args = args or {}
+	return function (x)
+		if not x then
+			return true, timer:new(unpack(args))
+		else
+			return true, x
+		end
+	end
+end
+
 --[[ utility function used in creating properties that are links
 --   to properties in other tables
 --
@@ -75,15 +89,31 @@ end
 --
 
 function PropLink(parent_prop, key)
-	return function()
-		return parent_prop[key]
-	end
+	local l = {
+		function()
+			return parent_prop[key]
+		end,
+		function(x)
+			parent_prop[key] = x
+		end,
+		__type = "link"
+	}
+	setmetatable(l,l)
+	return l
 end
 
 -- use in situations where a property is expected to be linked
 -- but only a constant value is required
 function PropConst(const)
-	return function()
-		return const
-	end
+	local l = {
+		function()
+			return const
+		end,
+		function(x)
+			const = x
+		end,
+		__type = "link"
+	}
+	setmetatable(l,l)
+	return l
 end
