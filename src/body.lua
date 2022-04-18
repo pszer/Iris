@@ -96,10 +96,6 @@ function IrisBody:ComputeBoundingBox(solid)
 	if boxes then
 		x,y,w,h = ComputeBoundingBox(boxes)
 
-		for i,v in ipairs(boxes) do
-			print("box, ", unpack(v))
-		end
-
 		if not x then
 			return nil, nil, nil, nil
 		end
@@ -325,8 +321,16 @@ HandleBodyCollision_dynamic_static_nonsolid      = function (bodya, bodyb)
 
 	-- this is quadratic time, do something better
 	for _, hitboxa in ipairs(bodyahitboxes) do
+		if not hitboxa.hitbox_enable then
+			goto skip1
+		end
+
 		local x1,y1,w1,h1 = hitboxa:Position()
 		for _, hitboxb in ipairs(bodybhitboxes) do
+			if not hitboxb.hitbox_enable then
+				goto skip2
+			end
+
 			local bodybprops = bodyb.props
 			local x2,y2,w2,h2 = hitboxb:Position()
 			local xvel = bodyaprops.body_xvel
@@ -358,7 +362,11 @@ HandleBodyCollision_dynamic_static_nonsolid      = function (bodya, bodyb)
 					hitboxbcallback(hitboxb, hitboxa, bodyb, bodya, entityb, entitya)
 				end
 			end
+			
+			::skip2::
 		end
+
+		::skip1::
 	end
 
 	return collided
@@ -372,11 +380,19 @@ HandleBodyCollision_dynamic_dynamic_nonsolid     = function (bodya, bodyb)
 
 	-- this is quadratic time, do something better
 	for _, hitboxa in ipairs(bodyahitboxes) do
+		if not hitboxb.hitbox_enable then
+			goto skip1
+		end
+
 		local bodyaprops = bodya.props
 		local bodya = bodya
 
 		local amass = bodyaprops.body_mass
 		for _, hitboxb in ipairs(bodybhitboxes) do
+			if not hitboxb.hitbox_enable then
+				goto skip2
+			end
+
 			local bodybprops = bodyb.props
 			local bodyb = bodyb
 
@@ -408,7 +424,11 @@ HandleBodyCollision_dynamic_dynamic_nonsolid     = function (bodya, bodyb)
 					hitbox2callback(h2, h1, b2, b1, entity2, entity1)
 				end
 			end
+
+			::skip2::
 		end
+
+		::skip1::
 	end
 
 	return collided
@@ -690,7 +710,6 @@ testbody3:AddFixture(testfixture3, true)
 
 testfixture4 = IrisFixture:new({fixture_name = "fixture4"})
 testfixture4:NewHitbox({hitbox_x = 0, hitbox_y = 0, hitbox_w = 580, hitbox_h = 100})
---testfixture4:NewHitbox({hitbox_x = 600, hitbox_y = 50, hitbox_w = 200, hitbox_h = 100})
 testbody4 = IrisBody:new({body_x = 0, body_y = 350, body_name = "body4", body_type = "static", body_classes={"world"}})
 testbody4:AddFixture(testfixture4, true)
 

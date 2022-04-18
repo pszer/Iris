@@ -1,3 +1,5 @@
+require "ents/player"
+
 return IrisRoomData:new{
 
 	room_name = "test_room",
@@ -6,15 +8,17 @@ return IrisRoomData:new{
 	room_width = 3000,
 
 	room_geometry = {
-		{x=0  , y=0,    w=200,  h=3000},
-		{x=200, y=2800, w=1000, h=200}
+
+		{x=200,y=200,w=25,h=25},
+		{x=600,y=350,w=100,h=50, orient="topright"},
+		{x=0,y=-50,w=600,h=100},
+		{x=0,y=350,w=600,h=100},
+		{x=600,y=400,w=180,h=50}
 
 	},
 
 	room_entspawners = {
-
-		{ent_name = "player"}
-
+		{IrisEnt_Player, {}, {body_x = 350, body_y = 150}}
 	},
 
 	room_worldprops = {

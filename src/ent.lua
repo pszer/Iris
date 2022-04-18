@@ -41,6 +41,7 @@ end
 
 function IrisEnt:Update()
 	local u = self.props.ent_update
+	self:CheckProperties()
 	if u then
 		u(self)
 	end
@@ -88,12 +89,29 @@ function IrisEnt.__tostring(ent)
 	return ent:DebugName()
 end
 
+function IrisEnt:CheckProperties()
+	local entprops = self.props
+
+	if entprops.ent_dieonnohp then
+		if entprops.ent_hp <= 0 then
+			self:Delete()
+		end
+	end
+end
+
 test_ent = IrisEnt:new( {x=100,y=100,name="hi",ent_sigdeletion=true})
 test_ent:SendNewSignal("TEST_SIGNAL", nil, nil, nil, nil)
 test_ent:Delete()
 
-function IrisCreateEntity(entdescription)
+function IrisCreateEntity(entdescription, entpropoverride, bodypropoverride)
 	local ent = IrisEnt:new(entdescription.props)
 	local body = BodyConf(entdescription.bodyconf)
+	ent.props.ent_body = body
+	if propoverride then
+		ent.props(entpropoverride)
+	end
+	if bodypropoverride then
+		body.props(bodypropoverride)
+	end
+	return ent
 end
-

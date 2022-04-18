@@ -48,10 +48,6 @@ function IrisRooms:LoadRoom(room, enttablecollection)
 	world = IrisWorld:new(worldprops)
 	enttable = EntTable:new{enttable_name = (room_name or "room") .. "_enttable"}
 
-	for i,v in pairs(room.props) do
-		print(i,v)
-	end
-
 	for _,entprops in ipairs(room.props.room_entspawners) do
 		enttable:AddEntity(IrisEnt:new(entprops))
 	end
@@ -78,6 +74,17 @@ function IrisRooms:LoadRoom(room, enttablecollection)
 		body.props(props)
 		body:AddFixture(fixture, true)
 		table.insert(geometry_bodies, body)
+	end
+
+	for _,entspawner in ipairs(room.props.room_entspawners) do
+		local entdescriptor = entspawner[1]
+		local entpropsoverride = entspawner[2]
+		local bodypropsoverride = entspawner[3]
+
+		local ent = IrisCreateEntity(entdescriptor, entpropsoverride, bodypropsoverride)
+		if ent then
+			enttable:AddEntity(ent)
+		end
 	end
 
 	if enttablecollection then

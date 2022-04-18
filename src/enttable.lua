@@ -69,9 +69,9 @@ end
 
 -- deleted entities marked for deletion
 function EntTable:DeleteMarked()
-	for k,v in pairs(self.ents) do
+	for k,v in ipairs(self.ents) do
 		if v.props.ent_delete then
-			self.ents[k] = nil
+			self.ents:Remove(k)
 		end
 	end
 end

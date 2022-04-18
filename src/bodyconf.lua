@@ -76,11 +76,7 @@ function BodyConf(conf, propsoverride)
 			elseif type(v) == "table" then
 				local hitbox = hitbox_helper(v)
 				if hitbox then
-					print("adding hitbox")
 					fixture:AddHitbox(hitbox)
-					for i,v in ipairs(fixtureprops.fixture_hitboxes) do
-						print(v, v.props.hitbox_x, v.props.hitbox_y, v.props.hitbox_w, v.props.hitbox_h)
-					end
 				end
 			end
 		end
