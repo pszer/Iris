@@ -24,12 +24,14 @@ function IRISGAME:load()
 
 	self.props.iris_world:CollectBody(testbody)
 	self.props.iris_world:CollectBody(testbody2)
-	self.props.iris_world:CollectBody(testbody3)
+	--self.props.iris_world:CollectBody(testbody3)
 	self.props.iris_world:CollectBody(testbody4)
 	self.props.iris_world:CollectBody(testbody5)
 	self.props.iris_world:CollectBody(testbody6)
 	self.props.iris_world:CollectBody(testbody7)
 	self.props.iris_world:CollectBody(testbody8)
+
+	CONTROL_LOCK.INGAME.Open()
 end
 
 --[[ order for entity updates
@@ -87,23 +89,6 @@ function IRISGAME:UpdateEnts()
 
 	local world = self.props.iris_world
 	if world then
-
-		CONTROL_LOCK.INGAME.Open()
-		if QueryScancode("left", CONTROL_LOCK.INGAME) then
-			testbody3.props.body_xvel = -4
-		end
-		if QueryScancode("right", CONTROL_LOCK.INGAME) then
-			testbody3.props.body_xvel = 4
-		end
-		if QueryScancode("up", CONTROL_LOCK.INGAME) then
-			if testbody3.props.body_onfloor then
-				testbody3.props.body_yvel = -13
-			end
-		end
-		if QueryScancode("down", CONTROL_LOCK.INGAME) then
-			testbody3.props.body_yvel = testbody3.props.body_yvel + 100
-		end
-
 		if elevatorgoup then
 			testbody2.props.body_yvel = -4
 		else

@@ -22,6 +22,7 @@ require "props/entprops"
 require "signals"
 require "timer"
 require "body"
+require "bodyconf"
 
 IrisEnt = {__type = "irisent"}
 IrisEnt.__index = IrisEnt
@@ -90,3 +91,9 @@ end
 test_ent = IrisEnt:new( {x=100,y=100,name="hi",ent_sigdeletion=true})
 test_ent:SendNewSignal("TEST_SIGNAL", nil, nil, nil, nil)
 test_ent:Delete()
+
+function IrisCreateEntity(entdescription)
+	local ent = IrisEnt:new(entdescription.props)
+	local body = BodyConf(entdescription.bodyconf)
+end
+
