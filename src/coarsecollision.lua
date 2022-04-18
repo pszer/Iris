@@ -27,6 +27,7 @@ end
 
 -- axis = "x" or "y"
 function SortedAABB:SortBodies(bodies, solid, axis, addvelocity)
+	-- there is redundant computation here if axis is specified, maybe fix that
 	local xaxismin = {}
 	local xaxismax = {}
 	local yaxismin = {}

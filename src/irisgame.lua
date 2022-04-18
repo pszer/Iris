@@ -21,13 +21,22 @@ IRISGAME.props.iris_enttables:AddTable(PlayerEntTable)
 
 function IRISGAME:load()
 	self:LoadRoom(require("rooms/testroom"))
+
+	self.props.iris_world:CollectBody(testbody)
+	self.props.iris_world:CollectBody(testbody2)
+	self.props.iris_world:CollectBody(testbody3)
+	self.props.iris_world:CollectBody(testbody4)
+	self.props.iris_world:CollectBody(testbody5)
+	self.props.iris_world:CollectBody(testbody6)
+	self.props.iris_world:CollectBody(testbody7)
+	self.props.iris_world:CollectBody(testbody8)
 end
 
 --[[ order for entity updates
 -- 1. collect signals
 -- 2. delete entities marked for deletion
--- 3. update world collisions
 -- 4. for each entity, let them handle signals then call their update function
+-- 3. update world collisions
 -- 5. delete old signals
 --]]
 function IRISGAME:UpdateEnts()
@@ -53,12 +62,6 @@ function IRISGAME:UpdateEnts()
 	-- delete any entities with props.ent_delete == true
 	self.props.iris_enttables:DeleteMarked()
 
-	local world = self.props.iris_world
-	if world then
-		world:CollideBodies()
-		world:CollideLogicBodies()
-	end
-
 	-- each entity will handle current signals
 	-- then call their update functions (if flags for these are enabled)
 	--
@@ -80,6 +83,42 @@ function IRISGAME:UpdateEnts()
 		if ent.props.ent_updateflag then
 			ent:Update()
 		end
+	end
+
+	local world = self.props.iris_world
+	if world then
+
+		CONTROL_LOCK.INGAME.Open()
+		if QueryScancode("left", CONTROL_LOCK.INGAME) then
+			testbody3.props.body_xvel = -4
+		end
+		if QueryScancode("right", CONTROL_LOCK.INGAME) then
+			testbody3.props.body_xvel = 4
+		end
+		if QueryScancode("up", CONTROL_LOCK.INGAME) then
+			if testbody3.props.body_onfloor then
+				testbody3.props.body_yvel = -13
+			end
+		end
+		if QueryScancode("down", CONTROL_LOCK.INGAME) then
+			testbody3.props.body_yvel = testbody3.props.body_yvel + 100
+		end
+
+		if elevatorgoup then
+			testbody2.props.body_yvel = -4
+		else
+			testbody2.props.body_yvel = 4
+		end
+
+		if testbody2.props.body_y < 200 and elevatorgoup then
+			elevatorgoup = false
+		elseif testbody2.props.body_y > 500 and not elevatorgoup then
+			elevatorgoup = true
+		end
+
+		world:CollideBodies()
+		world:CollideLogicBodies()
+		world:UpdateBodies()
 	end
 
 	-- delete old signals

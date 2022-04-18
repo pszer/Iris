@@ -5,6 +5,7 @@ local profiler = require("profiler")
 
 function love.load()
 	SET_GAMESTATE(IRISGAME)
+
 end
 
 function love.update(dt)

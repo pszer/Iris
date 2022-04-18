@@ -178,6 +178,7 @@ function IrisBody:AddFixture(fixture, activate)
 	fixture.props.fixture_parent_x = PropLink(selfprops, "body_x")
 	fixture.props.fixture_parent_y = PropLink(selfprops, "body_y")
 	fixture.props.fixture_parent = self
+	--fixture:SetFixtureHitboxesParent(self)
 
 	local f = self.__fixtures
 	f[#f+1] = fixture
