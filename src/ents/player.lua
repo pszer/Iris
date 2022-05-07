@@ -11,8 +11,6 @@ IrisEnt_Player = {
 			local entprops = self.props
 			local body = self.props.ent_body
 
-			entprops.ent_hp = entprops.ent_hp - 1
-
 			if QueryScancode("left", CONTROL_LOCK.INGAME) then
 				body.props.body_xvel = -4
 			end

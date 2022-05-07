@@ -121,29 +121,19 @@ EntTableCollection.__type  = "enttablecollection"
 EntTableCollection.__next = function(t, index)
 	::recur::
 	if index == nil or index[2] == nil then
-		--[[
-		if index ~= nil and index[2] == nil then
-			print("yo dat index[2] is nil doe")
-			print("index and index[1] is ", index and index[2])
-		end--]]
-
-		--print("point 1")
 		local n1 = pairs(t.__active_tables)
 		local i,ent_table = n1(t.__active_tables, index and index[1])
 
 		if not i then
-			--print("point 2")
 			return nil, nil
 		else
 			local n2 = pairs(ent_table.ents.__entries)
 			local ent_i, ent = n2(ent_table.ents.__entries)
 
 			if not ent_i then
-				--print("point 3")
 				index = {i, nil}
 				goto recur
 			else
-				--print("point 4")
 				return {i, ent_i}, ent
 			end
 		end

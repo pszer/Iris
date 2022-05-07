@@ -2,6 +2,7 @@ require 'string'
 
 require "props/irisrenderprops"
 require "room"
+require "visual"
 
 IrisRenderer = {
 	props = IrisRenderPropPrototype()

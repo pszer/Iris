@@ -71,8 +71,6 @@ function SortedTable:Search(x)
 		m = math.floor((l+r)/2)
 		local at_m = self.__entries[m]
 
-		--print("l,r,m = " .. l .. " " .. r .. " " .. m)
-
 		if self.__equality(at_m, x) then
 			return m, at_m
 		elseif self.__lessthan(at_m, x) then
@@ -134,21 +132,3 @@ function CombineSortedTable(a,b)
 	result.__length = an + bn
 	return result
 end
-
-function _lt_(a,b) return a<b end
-function _eq_(a,b) return a==b end
-st1 = SortedTable:new(_lt_,_eq_)
-st2 = SortedTable:new(_lt_,_eq_)
-
-st1:Add(5)
-st1:Add(9)
-st1:Add(1)
-st1:Add(3)
-st2:Add(2)
-st2:Add(8)
-st2:Add(7)
-st2:Add(4)
-st2:Add(6)
-
-st3 = CombineSortedTable(st1, st2)
-print(unpack(st3.__entries))

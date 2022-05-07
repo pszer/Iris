@@ -54,12 +54,31 @@ function IRIS_SIGNAL_REGISTERED(name)
 end
 
 function IRIS_REGISTER_SIGNAL(signal_prototype)
-	IRIS_SIGNALS[signal_prototype.sig_type] = signal_prototype
+	IRIS_SIGNALS[signal_prototype.props.sig_type] = signal_prototype
 end
 
-function IrisCreateSignal(name, ent)
+function IrisCreateSignal(name, ent, payload, destent)
+	local sigdesc = IRIS_SIGNALS[name]
 	if IRIS_SIGNALS[name] then
-		return Signal:new(IRIS_SIGNALS[name]:__new(ent))
+		local sigprops = sigdesc.props
+		local sigpayload = sigdesc.payload
+		if payload then
+			for i,v in pairs(payload) do
+				sigpayload[i] = v
+			end
+		end
+		sigprops.signal_payload = sigpayload
+
+		local sig = Signal:new(sigprops)
+
+		if ent then
+			sig.props.sig_sender = ent.props.ent_id
+		end
+		if destent then
+			sig.props.sig_dest = destent.props.ent_id
+		end
+
+		return sig
 	end
 
 	print("IrisCreateSignal: " .. name .. " is not a registered signal")

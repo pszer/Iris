@@ -185,22 +185,6 @@ function GridHierarchy:AddBodyToCell(index, body)
 	end
 
 	table.insert(cell[5], body)
-
-	--[[print("data")
-	for i,v in pairs(gridtest.__grid_bodies[depth]) do
-		local p = nil
-		for j,k in pairs(gridtest.__grid_indices[depth]) do
-			if k == i then
-				p = j
-				break
-			end
-		end
-		if not p then
-			print(i,v)
-		else
-			print(i,v,p)
-		end
-	end--]]
 end
 
 function GridHierarchy:BodyExistsInCell(index, body)

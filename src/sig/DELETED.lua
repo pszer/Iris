@@ -3,18 +3,16 @@
 
 require "signal"
 
-SIG_DELETED = { sig_type = "signal_deleted" }
-SIG_DELETED.__index = SIG_DELETED
-
-function SIG_DELETED:__new(ent)
-	local this = {
-		sig_type = self.sig_type,
+SIG_DELETED = {
+	props = {
+		sig_type = "signal_deleted",
 		sig_debug = true,
-		sig_debug_text = tostring(ent) .. " deleted",
+		sig_debug_text = "entity deleted",
+	},
 
-		sig_sender = ent.props.ent_id
+	payload = {
+		
 	}
-	return this
-end
+}
 
 IRIS_REGISTER_SIGNAL(SIG_DELETED)
