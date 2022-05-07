@@ -37,6 +37,7 @@ function IrisLoadImage(path, props)
 		return nil
 	end
 
+
 	props = props or {}
 	props.image_quadparent = nil
 
