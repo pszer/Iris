@@ -8,11 +8,19 @@ function love.load()
 
 end
 
+__CACHE_COUNTER = 0
 function love.update(dt)
 	GAMESTATE:update(dt)
+
+	-- we check
+	if __CACHE_COUNTER >= 600 then
+		IrisCleanImageCache()
+		__CACHE_COUNTER = 0
+	else
+		__CACHE_COUNTER = __CACHE_COUNTER + 1
+	end
 end
 
-elevatorgoup = true
 function love.draw()
 	GAMESTATE:draw()
 end

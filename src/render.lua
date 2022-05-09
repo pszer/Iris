@@ -92,4 +92,7 @@ function IrisRenderer:Draw()
 			self:RenderWorldDebug(props.render_world)
 		end
 	end
+
+	love.graphics.setColor(1,1,1,1)
+	love.graphics.draw(IrisGetImage("rb.png",256,256))
 end

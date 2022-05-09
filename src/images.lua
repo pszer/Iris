@@ -2,6 +2,7 @@
 --]]
 
 require "string"
+require "props/imageprops"
 
 IrisImage = {}
 IrisImage = {}
@@ -9,7 +10,9 @@ IrisImage.__index = IrisImage
 IrisImage.__type = "irisimage"
 
 function IrisImage:new(props) 
-	local t = IrisImagePropPrototype(props)
+	local t = {
+		props = IrisImagePropPrototype(props)
+	}
 	setmetatable(t, IrisImage)
 	t.props.image_cachelastpoll = love.timer.getTime()
 	return t
@@ -23,26 +26,36 @@ function IrisImage:MarkedForDecache()
 	local props = v.props
 	local time_elapsed = time - props.image_cachelastpoll
 
+	-- clean if old
 	if time_elapsed > props.image_cachelifetime
 	   and not props.image_quadparent
 	   and not props.image_cachelifetime then
 		return true
 	end
+
+	-- clean quads if parent image is gone
+	if props.image_quadparent and not LOADED_IMAGES[props.image_quadparent] then
+		return true
+	end
+
 	return false
 end
 
 function IrisLoadImage(path, props)
-	local info = love.filesystem.getInfo(path)
-	if not (info and info.type == "file") then
+	--[[local info = love.filesystem.getInfo(path, "file")
+	if not info then
+		print("nope")
 		return nil
-	end
+	end--]]
 
 
 	props = props or {}
 	props.image_quadparent = nil
 
-	local img = love.graphics.newImage(path) 
-	if not img then
+	local ok, img = --love.graphics.newImage(path) 
+		pcall(love.graphics.newImage, path)
+	if not ok then
+		print(path, img, "zomg")
 		return nil
 	end
 
@@ -64,7 +77,12 @@ end
 function IrisGetImage(path)
 	local img = LOADED_IMAGES[path]
 	if not img then
-		return IrisLoadImage("../img/" .. path) or IrisLoadImage(path)
+		img = IrisLoadImage("img/" .. path) or IrisLoadImage(path)
+		if img then
+			return img.props.image_graphic
+		else
+			return nil
+		end
 	end
 
 	img:Poll()
@@ -81,10 +99,8 @@ function IrisCleanImageCache()
 end
 
 LOADED_IMAGES = {}
-LOADED_IMAGES.__index = function(i) 
-	if i and i:sub(1,1) ~= '.' then
-		return LOADED_IMAGES["../img/" .. i]
-	end
+LOADED_IMAGES.__index = function(t,i)
+	return rawget(LOADED_IMAGES, "img/" .. i)
 end
 setmetatable(LOADED_IMAGES, LOADED_IMAGES)
 
