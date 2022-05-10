@@ -21,7 +21,10 @@ IrisVisualElementPropPrototype = Props:prototype{
 	{"viselement_flipx", "boolean", false, nil, "if true the image is flipped x-wise"}, -- done
 	{"viselement_flipy", "boolean", false, nil, "if true the image is flipped y-wise"}, -- done
 
+	{"viselement_rotate", "number", 0, nil, "the orientation of the image in radians"}, -- done
+
 	{"viselement_enable", "boolean", true, nil, "if false this vis element will not be drawn"} -- done
+
 }
 
 IrisVisualPropPrototype = Props:prototype{
@@ -30,5 +33,11 @@ IrisVisualPropPrototype = Props:prototype{
 	-- name      type        value        validation     info      only
 
 	{"visual_elements", "table", nil, PropDefaultTable{}, "the table of visual elements in this visual"}, -- done
+
+	{"visual_animationstate", nil, nil, nil, "current active animation, if nil then no animation config is used"}
+	{"visual_animations", "table" , nil, PropDefaultTable{}, "collection of animation configurations"}
+
+	{"visual_x", "link", PropConst(0), "visuals x position, can be linked to something like an entity"}
+	{"visual_y", "link", PropConst(0), "visuals x position, can be linked to something like an entity"}
 
 }

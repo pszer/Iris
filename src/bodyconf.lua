@@ -1,4 +1,4 @@
--- a more convenient way of creating bodies that calling body, fixture and hitbox creation functions
+-- a more convenient way of creating bodies than calling body, fixture and hitbox creation functions
 -- and joining them together
 --
 -- example
